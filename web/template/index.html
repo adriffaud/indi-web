@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>INDI Web</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="static/htmx.min.js"></script>
+  </head>
+  <body>
+    <h1>INDI Web</h1>
+    <div>
+      <label for="indi_server">INDI Server:</label>
+      <button id="indi_server" hx-post="/indi/activate" hx-trigger="click">
+        Stopped
+      </button>
+    </div>
+  </body>
+</html>
