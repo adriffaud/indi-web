@@ -11,7 +11,11 @@
     <div>
       <label for="indi_server">INDI Server:</label>
       <button id="indi_server" hx-post="/indi/activate" hx-trigger="click">
-        Stopped
+      {{- if .Running}}
+      Running
+      {{- else }}
+      Stopped
+      {{- end }}
       </button>
     </div>
   </body>

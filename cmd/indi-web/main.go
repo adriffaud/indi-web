@@ -2,57 +2,49 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"sync"
-	"syscall"
 
+	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/sys/unix"
-)
-
-var (
-	cmd     *exec.Cmd
-	cmdLock sync.Mutex
 )
 
 func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	body, _ := os.ReadFile("web/template/index.html")
-	fmt.Fprint(w, string(body))
+	tmpl, _ := os.ReadFile("web/template/index.html")
+	data := struct {
+		Running bool
+	}{
+		Running: indiserver.IsRunning(),
+	}
+	t, err := template.New("index").Parse(string(tmpl))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = t.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func INDIServer(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	cmdLock.Lock()
-	defer cmdLock.Unlock()
-
-	if cmd != nil && cmd.Process != nil {
-		err := cmd.Process.Signal(syscall.SIGTERM)
+	if indiserver.IsRunning() {
+		err := indiserver.Stop()
 		if err != nil {
-			log.Printf("An error occurred while terminating INDI server: %v\n", err)
+			log.Printf("could not stop INDI server: %v", err)
 			return
 		}
-
-		_ = cmd.Wait()
-		cmd = nil
-
-		fmt.Fprintln(w, "Stopped")
+		fmt.Fprint(w, "Stopped")
 	} else {
-		fifoFile := "/tmp/indififo"
-		unix.Mkfifo(fifoFile, 0o600)
-
-		args := []string{"-vvv", "-p", "4000", "-f", fifoFile, "-r", "0"}
-
-		cmd = exec.Command("indiserver", args...)
-		cmd.Stdout = log.Writer()
-		cmd.Stderr = log.Writer()
-
-		if err := cmd.Start(); err != nil {
-			log.Printf("An error occurred while starting INDI server: %v\n", err)
+		err := indiserver.Start()
+		if err != nil {
+			log.Printf("could not start INDI server: %v", err)
 			return
 		}
-
 		fmt.Fprint(w, "Running")
 	}
 }
