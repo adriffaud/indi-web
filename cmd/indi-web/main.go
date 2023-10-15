@@ -7,21 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sort"
-	"strings"
 
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
-	"github.com/beevik/etree"
 	"github.com/julienschmidt/httprouter"
 )
-
-type Device struct {
-	Name          string
-	Manufacturer  string
-	DriverCaption string
-	DriverName    string
-	Version       string
-}
 
 func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	tmpl, _ := os.ReadFile("web/template/index.html")
@@ -44,63 +33,14 @@ func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 }
 
 func INDIDrivers(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	files, err := os.ReadDir("/usr/share/indi")
+	driverGroups, err := indiserver.ListDrivers()
 	if err != nil {
-		log.Printf("could not list INDI drivers: %v", err)
+		log.Printf("could not get INDI drivers: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	groups := make(map[string][]Device)
-
-	for _, file := range files {
-		if !file.IsDir() && strings.HasSuffix(file.Name(), ".xml") {
-			doc := etree.NewDocument()
-			err = doc.ReadFromFile(fmt.Sprintf("/usr/share/indi/%s", file.Name()))
-			if err != nil {
-				log.Printf("could not list INDI drivers: %v", err)
-				return
-			}
-
-			driversList := doc.SelectElement("driversList")
-			if driversList == nil {
-				continue
-			}
-
-			for _, groupElem := range driversList.SelectElements("devGroup") {
-				var drivers []Device
-
-				group := groupElem.SelectAttrValue("group", "")
-
-				if existingDrivers, ok := groups[group]; ok {
-					drivers = append(existingDrivers, drivers...)
-				}
-
-				for _, driver := range groupElem.ChildElements() {
-					driverChild := driver.SelectElement("driver")
-
-					device := Device{
-						Name:          driver.SelectAttrValue("label", ""),
-						Manufacturer:  driver.SelectAttrValue("manufacturer", ""),
-						DriverCaption: driverChild.SelectAttrValue("name", ""),
-						DriverName:    driverChild.Text(),
-						Version:       driver.SelectElement("version").Text(),
-					}
-
-					drivers = append(drivers, device)
-				}
-
-				groups[group] = drivers
-			}
-		}
-	}
-
-	for _, drivers := range groups {
-		sort.Slice(drivers, func(i, j int) bool {
-			return drivers[i].Name < drivers[j].Name
-		})
-	}
-
-	jsonb, _ := json.Marshal(groups)
+	jsonb, _ := json.Marshal(driverGroups)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, string(jsonb))
 }
