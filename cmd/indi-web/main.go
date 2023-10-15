@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
 	"github.com/julienschmidt/httprouter"
@@ -14,12 +15,24 @@ import (
 
 func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	tmpl, _ := os.ReadFile("web/template/index.html")
-	data := struct {
-		Running bool
-	}{
-		Running: indiserver.IsRunning(),
+
+	driverGroups, err := indiserver.ListDrivers()
+	if err != nil {
+		log.Printf("could not get INDI drivers: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	t, err := template.New("index").Parse(string(tmpl))
+
+	data := struct {
+		DriversGroups indiserver.DeviceGroups
+		Running       bool
+	}{
+		DriversGroups: driverGroups,
+		Running:       indiserver.IsRunning(),
+	}
+	t, err := template.New("index").Funcs(template.FuncMap{"lower": strings.ToLower, "appendSuffix": func(suffix, str string) string {
+		return str + suffix
+	}}).Parse(string(tmpl))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -45,21 +58,29 @@ func INDIDrivers(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, string(jsonb))
 }
 
-func INDIServer(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
+func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("%+v\n", r.Form)
+
 	if indiserver.IsRunning() {
 		err := indiserver.Stop()
 		if err != nil {
 			log.Printf("could not stop INDI server: %v", err)
 			return
 		}
-		fmt.Fprint(w, "Stopped")
+		fmt.Fprint(w, "Start")
 	} else {
 		err := indiserver.Start()
 		if err != nil {
 			log.Printf("could not start INDI server: %v", err)
 			return
 		}
-		fmt.Fprint(w, "Running")
+		fmt.Fprint(w, "Stop")
 	}
 }
 

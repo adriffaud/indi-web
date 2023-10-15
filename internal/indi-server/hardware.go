@@ -87,6 +87,10 @@ func parseXML(filepath string, groups DeviceGroups) error {
 func sortDrivers(groups DeviceGroups) {
 	for _, drivers := range groups {
 		sort.Slice(drivers, func(i, j int) bool {
+			if drivers[i].Manufacturer != drivers[j].Manufacturer {
+				return drivers[i].Manufacturer < drivers[j].Manufacturer
+			}
+
 			return drivers[i].Name < drivers[j].Name
 		})
 	}
