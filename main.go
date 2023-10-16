@@ -3,19 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
-	"os"
-	"strings"
+	"time"
 
+	"github.com/adriffaud/indi-web/components"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
 	"github.com/julienschmidt/httprouter"
 )
 
-func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	tmpl, _ := os.ReadFile("web/template/index.html")
-
+func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	driverGroups, err := indiserver.ListDrivers()
 	if err != nil {
 		log.Printf("could not get INDI drivers: %v", err)
@@ -23,26 +20,11 @@ func Index(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	data := struct {
-		DriversGroups indiserver.DeviceGroups
-		Running       bool
-	}{
-		DriversGroups: driverGroups,
-		Running:       indiserver.IsRunning(),
+	data := map[string]interface{}{
+		"DriversGroups": driverGroups,
+		"Running":       indiserver.IsRunning(),
 	}
-	t, err := template.New("index").Funcs(template.FuncMap{"lower": strings.ToLower, "appendSuffix": func(suffix, str string) string {
-		return str + suffix
-	}}).Parse(string(tmpl))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	err = t.Execute(w, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	components.Page(data).Render(r.Context(), w)
 }
 
 func INDIDrivers(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
@@ -91,5 +73,13 @@ func main() {
 	router.GET("/indi/drivers", INDIDrivers)
 	router.ServeFiles("/static/*filepath", http.Dir("web/static"))
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	server := &http.Server{
+		Addr:         "localhost:8080",
+		Handler:      router,
+		ReadTimeout:  time.Second * 10,
+		WriteTimeout: time.Second * 10,
+	}
+
+	fmt.Printf("Listening on %v\n", server.Addr)
+	server.ListenAndServe()
 }

@@ -1,0 +1,60 @@
+package components
+
+import "github.com/adriffaud/indi-web/internal/indi-server"
+import "strings"
+
+templ hello(name string) {
+	<div>Hello, { name }</div>
+}
+
+templ DriverSelector(group string, drivers []indiserver.Device) {
+	<label for={ strings.ToLower(group) + "_select" }>
+		{ group }:
+		<select id={ strings.ToLower(group) } name={ strings.ToLower(group) + "_select" }>
+			<option value="" selected></option>
+			for _, driver := range drivers {
+				<option value={ driver.DriverName }>{ driver.Manufacturer } - { driver.Name }</option>
+			}
+		</select>
+	</label>
+}
+
+templ button(running bool) {
+	<button id="indi_server" type="submit">
+		if running {
+			Stop
+		} else {
+			Start
+		}
+	</button>
+}
+
+templ Page(data map[string]interface{}) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<title>INDI Web</title>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<script src="static/htmx.min.js"></script>
+		</head>
+		<body>
+			<h1>INDI Web</h1>
+			<div>
+				<h2>Hardware</h2>
+				<form hx-post="/indi/activate" hx-target="#indi_server">
+					@DriverSelector("Mount", data["DriversGroups"].(indiserver.DeviceGroups)["Telescopes"])
+					<br/>
+					@DriverSelector("Camera", data["DriversGroups"].(indiserver.DeviceGroups)["CCDs"])
+					<br/>
+					@DriverSelector("Guider", data["DriversGroups"].(indiserver.DeviceGroups)["CCDs"])
+					<br/>
+					<label for="indi_server">
+						INDI Server:
+						@button(data["Running"].(bool))
+					</label>
+				</form>
+			</div>
+		</body>
+	</html>
+}
