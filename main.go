@@ -8,8 +8,11 @@ import (
 
 	"github.com/adriffaud/indi-web/components"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	indiclient "github.com/adriffaud/indi-web/pkg/indi-client"
 	"github.com/julienschmidt/httprouter"
 )
+
+var indiClient *indiclient.Client
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	driverGroups, err := indiserver.ListDrivers()
@@ -18,6 +21,8 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("INDI Client: %+v\n", indiClient)
 
 	components.Page(indiserver.IsRunning(), driverGroups).Render(r.Context(), w)
 }
@@ -39,7 +44,6 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	log.Printf("%+v\n", r.Form)
 	d := make([]string, 0, len(r.Form))
 	for _, driver := range r.Form {
 		d = append(d, driver[0])
@@ -50,6 +54,16 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		log.Printf("could not start INDI server: %v", err)
 		return
 	}
+
+	// TODO: Wait for server start before creating the client
+	time.Sleep(400 * time.Millisecond)
+
+	indiClient, err = indiclient.New("localhost:7624")
+	if err != nil {
+		log.Printf("could not start INDI client: %v", err)
+		return
+	}
+
 	components.IndiServerButton(true).Render(r.Context(), w)
 }
 
