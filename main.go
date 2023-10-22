@@ -67,7 +67,7 @@ func main() {
 	router.GET("/", Index)
 	router.POST("/indi/activate", INDIServer)
 	router.GET("/indi/drivers", INDIDrivers)
-	router.ServeFiles("/static/*filepath", http.Dir("web/static"))
+	router.ServeFiles("/static/*filepath", http.Dir("assets"))
 
 	server := &http.Server{
 		Addr:         "localhost:8080",
