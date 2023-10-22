@@ -3,10 +3,6 @@ package components
 import "github.com/adriffaud/indi-web/internal/indi-server"
 import "strings"
 
-templ hello(name string) {
-	<div>Hello, { name }</div>
-}
-
 templ DriverSelector(group string, drivers []indiserver.Device) {
 	<label for={ strings.ToLower(group) + "_select" }>
 		{ group }:
@@ -29,7 +25,7 @@ templ button(running bool) {
 	</button>
 }
 
-templ Page(data map[string]interface{}) {
+templ Page(running bool, driversGroups indiserver.DeviceGroups) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -43,15 +39,15 @@ templ Page(data map[string]interface{}) {
 			<div>
 				<h2>Hardware</h2>
 				<form hx-post="/indi/activate" hx-target="#indi_server">
-					@DriverSelector("Mount", data["DriversGroups"].(indiserver.DeviceGroups)["Telescopes"])
+					@DriverSelector("Mount", driversGroups["Telescopes"])
 					<br/>
-					@DriverSelector("Camera", data["DriversGroups"].(indiserver.DeviceGroups)["CCDs"])
+					@DriverSelector("Camera", driversGroups["CCDs"])
 					<br/>
-					@DriverSelector("Guider", data["DriversGroups"].(indiserver.DeviceGroups)["CCDs"])
+					@DriverSelector("Guider", driversGroups["CCDs"])
 					<br/>
 					<label for="indi_server">
 						INDI Server:
-						@button(data["Running"].(bool))
+						@button(running)
 					</label>
 				</form>
 			</div>

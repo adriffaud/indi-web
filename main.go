@@ -20,11 +20,7 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	data := map[string]interface{}{
-		"DriversGroups": driverGroups,
-		"Running":       indiserver.IsRunning(),
-	}
-	components.Page(data).Render(r.Context(), w)
+	components.Page(indiserver.IsRunning(), driverGroups).Render(r.Context(), w)
 }
 
 func INDIDrivers(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
