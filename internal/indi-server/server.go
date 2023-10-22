@@ -17,6 +17,8 @@ func Start(drivers []string) error {
 		return nil
 	}
 
+	log.Printf("Starting INDI server with drivers: %v\n", drivers)
+
 	cmdLock.Lock()
 	defer cmdLock.Unlock()
 
