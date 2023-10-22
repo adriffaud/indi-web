@@ -6,7 +6,7 @@ all: build
 
 .PHONY: build
 build:
-	go build -o $(BINARY_NAME) ./cmd/indi-web
+	go build -o $(BINARY_NAME)
 
 .PHONY: download
 download:
