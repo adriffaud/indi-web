@@ -10,4 +10,4 @@ Simply run
 make run
 ```
 
-This will download [Air](https://github.com/cosmtrek/air) which will watch and restart the server on code modification.
+This will download [Air](https://github.com/cosmtrek/air) which will watch and restart the server on code modification and [Templ](https://templ.guide) which generates Go code from templ files.
