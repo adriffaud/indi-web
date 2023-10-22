@@ -37,14 +37,6 @@ func INDIDrivers(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 }
 
 func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
-		return
-	}
-
-	log.Printf("%+v\n", r.Form)
-
 	if indiserver.IsRunning() {
 		err := indiserver.Stop()
 		if err != nil {
@@ -52,14 +44,27 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			return
 		}
 		fmt.Fprint(w, "Start")
-	} else {
-		err := indiserver.Start()
-		if err != nil {
-			log.Printf("could not start INDI server: %v", err)
-			return
-		}
-		fmt.Fprint(w, "Stop")
+		return
 	}
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("%+v\n", r.Form)
+	d := make([]string, 0, len(r.Form))
+	for _, driver := range r.Form {
+		d = append(d, driver[0])
+	}
+
+	err = indiserver.Start(d)
+	if err != nil {
+		log.Printf("could not start INDI server: %v", err)
+		return
+	}
+	fmt.Fprint(w, "Stop")
 }
 
 func main() {

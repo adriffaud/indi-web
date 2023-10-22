@@ -5,8 +5,6 @@ import (
 	"os/exec"
 	"sync"
 	"syscall"
-
-	"golang.org/x/sys/unix"
 )
 
 var (
@@ -14,7 +12,7 @@ var (
 	cmdLock sync.Mutex
 )
 
-func Start() error {
+func Start(drivers []string) error {
 	if IsRunning() {
 		return nil
 	}
@@ -22,10 +20,8 @@ func Start() error {
 	cmdLock.Lock()
 	defer cmdLock.Unlock()
 
-	fifoFile := "/tmp/indififo"
-	unix.Mkfifo(fifoFile, 0o600)
-
-	args := []string{"-vvv", "-f", fifoFile, "-r", "0"}
+	args := []string{"-vvv", "-r", "0"}
+	args = append(args, drivers...)
 
 	cmd = exec.Command("indiserver", args...)
 	cmd.Stdout = log.Writer()
