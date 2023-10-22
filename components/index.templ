@@ -15,14 +15,17 @@ templ DriverSelector(group string, drivers []indiserver.Device) {
 	</label>
 }
 
-templ button(running bool) {
-	<button id="indi_server" type="submit">
-		if running {
-			Stop
-		} else {
-			Start
-		}
-	</button>
+templ IndiServerButton(running bool) {
+	<label for="indi_server">
+		INDI Server:
+		<button id="indi_server" type="submit">
+			if running {
+				Stop
+			} else {
+				Start
+			}
+		</button>
+	</label>
 }
 
 templ Page(running bool, driversGroups indiserver.DeviceGroups) {
@@ -38,17 +41,18 @@ templ Page(running bool, driversGroups indiserver.DeviceGroups) {
 			<h1>INDI Web</h1>
 			<div>
 				<h2>Hardware</h2>
-				<form hx-post="/indi/activate" hx-target="#indi_server">
-					@DriverSelector("Mount", driversGroups["Telescopes"])
-					<br/>
-					@DriverSelector("Camera", driversGroups["CCDs"])
-					<br/>
-					@DriverSelector("Guider", driversGroups["CCDs"])
-					<br/>
-					<label for="indi_server">
-						INDI Server:
-						@button(running)
-					</label>
+				<form id="indi-server-form" hx-post="/indi/activate" hx-target="#indi-server-form">
+					if running {
+						@IndiServerButton(running)
+					} else {
+						@DriverSelector("Mount", driversGroups["Telescopes"])
+						<br/>
+						@DriverSelector("Camera", driversGroups["CCDs"])
+						<br/>
+						@DriverSelector("Guider", driversGroups["CCDs"])
+						<br/>
+						@IndiServerButton(running)
+					}
 				</form>
 			</div>
 		</body>

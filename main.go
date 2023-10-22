@@ -43,7 +43,7 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			log.Printf("could not stop INDI server: %v", err)
 			return
 		}
-		fmt.Fprint(w, "Start")
+		w.Header().Add("HX-Location", "/")
 		return
 	}
 
@@ -64,7 +64,7 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		log.Printf("could not start INDI server: %v", err)
 		return
 	}
-	fmt.Fprint(w, "Stop")
+	components.IndiServerButton(true).Render(r.Context(), w)
 }
 
 func main() {
