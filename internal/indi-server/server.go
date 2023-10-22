@@ -20,10 +20,7 @@ func Start(drivers []string) error {
 	cmdLock.Lock()
 	defer cmdLock.Unlock()
 
-	args := []string{"-vvv", "-r", "0"}
-	args = append(args, drivers...)
-
-	cmd = exec.Command("indiserver", args...)
+	cmd = exec.Command("indiserver", drivers...)
 	cmd.Stdout = log.Writer()
 	cmd.Stderr = log.Writer()
 
