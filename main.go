@@ -64,6 +64,8 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
+	indiClient.GetProperties()
+
 	components.IndiServerButton(true).Render(r.Context(), w)
 }
 
