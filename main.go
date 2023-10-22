@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,19 +20,6 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	components.Page(indiserver.IsRunning(), driverGroups).Render(r.Context(), w)
-}
-
-func INDIDrivers(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	driverGroups, err := indiserver.ListDrivers()
-	if err != nil {
-		log.Printf("could not get INDI drivers: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	jsonb, _ := json.Marshal(driverGroups)
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, string(jsonb))
 }
 
 func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -71,7 +57,6 @@ func main() {
 	router := httprouter.New()
 	router.GET("/", Index)
 	router.POST("/indi/activate", INDIServer)
-	router.GET("/indi/drivers", INDIDrivers)
 	router.ServeFiles("/static/*filepath", http.Dir("assets"))
 
 	server := &http.Server{
