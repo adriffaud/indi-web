@@ -7,15 +7,12 @@ import (
 	"time"
 
 	"github.com/adriffaud/indi-web/components"
+	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
-	indiclient "github.com/adriffaud/indi-web/pkg/indi-client"
 	"github.com/julienschmidt/httprouter"
 )
 
-var (
-	indiClient *indiclient.Client
-	events     = make(chan indiclient.Message)
-)
+var indiClient *indiclient.Client
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	driverGroups, err := indiserver.ListDrivers()
@@ -30,22 +27,6 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	components.Page(indiserver.IsRunning(), driverGroups).Render(r.Context(), w)
 }
 
-func eventHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-
-	for {
-		select {
-		case msg := <-events:
-			fmt.Fprintf(w, "data: %+v\n\n", msg)
-			w.(http.Flusher).Flush()
-		case <-r.Context().Done():
-			return
-		}
-	}
-}
-
 func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if indiserver.IsRunning() {
 		err := indiserver.Stop()
@@ -53,7 +34,8 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			log.Printf("could not stop INDI server: %v", err)
 			return
 		}
-		indiClient.Close()
+
+		defer indiClient.Conn.Close()
 
 		w.Header().Add("HX-Location", "/")
 		return
@@ -79,7 +61,7 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// TODO: Wait for server start before creating the client
 	time.Sleep(400 * time.Millisecond)
 
-	indiClient, err = indiclient.New("localhost:7624", events)
+	indiClient, err = indiclient.New("localhost:7624")
 	if err != nil {
 		log.Printf("could not start INDI client: %v", err)
 		return
@@ -93,7 +75,6 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func main() {
 	router := httprouter.New()
 	router.GET("/", index)
-	router.GET("/events", eventHandler)
 	router.POST("/indi/activate", INDIServer)
 	router.ServeFiles("/static/*filepath", http.Dir("assets"))
 

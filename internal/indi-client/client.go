@@ -23,15 +23,7 @@ func New(address string) (*Client, error) {
 		return nil, err
 	}
 
-	msg := make(chan Message)
-	go recv(conn, msg)
-
-	go func() {
-		for {
-			str := <-msg
-			log.Printf("[INDI Client] Received: %s\n", str)
-		}
-	}()
+	go recv(conn)
 
 	return &Client{Conn: conn}, nil
 }
@@ -49,7 +41,7 @@ func (c *Client) GetProperties() error {
 	return c.sendMessage("<getProperties version=\"1.7\"/>")
 }
 
-func recv(c net.Conn, msgch chan Message) {
+func recv(c net.Conn) {
 	buf := make([]byte, 2048)
 	var incompleteData []byte
 
@@ -61,11 +53,11 @@ func recv(c net.Conn, msgch chan Message) {
 		}
 
 		data := append(incompleteData, buf[:n]...)
-		incompleteData = processData(data, msgch)
+		incompleteData = processData(data)
 	}
 }
 
-func processData(data []byte, msgch chan Message) []byte {
+func processData(data []byte) []byte {
 	decoder := xml.NewDecoder(bytes.NewReader(data))
 
 	for {
@@ -75,6 +67,7 @@ func processData(data []byte, msgch chan Message) []byte {
 			return data
 		}
 
-		msgch <- msg
+		log.Println("================================")
+		log.Printf("[INDI Client] Received:\n%+v\n", msg)
 	}
 }
