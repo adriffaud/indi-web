@@ -1,6 +1,8 @@
 package indiclient
 
 import (
+	"bytes"
+	"encoding/xml"
 	"fmt"
 	"log"
 	"net"
@@ -10,19 +12,9 @@ type Client struct {
 	Conn net.Conn
 }
 
-func recv(c net.Conn, msgch chan string) {
-	buf := make([]byte, 2048)
-	for {
-		n, err := c.Read(buf)
-		if err != nil {
-			log.Println("read error:", err)
-			continue
-		}
-
-		msg := buf[:n]
-		log.Printf("[INDI Client] Received: %s", msg)
-		// msgch <- string(msg)
-	}
+type Message struct {
+	XMLName xml.Name
+	Content string `xml:",innerxml"`
 }
 
 func New(address string) (*Client, error) {
@@ -31,13 +23,13 @@ func New(address string) (*Client, error) {
 		return nil, err
 	}
 
-	msg := make(chan string)
+	msg := make(chan Message)
 	go recv(conn, msg)
 
 	go func() {
 		for {
 			str := <-msg
-			log.Printf("[INDI Client] Received: %s", str)
+			log.Printf("[INDI Client] Received: %s\n", str)
 		}
 	}()
 
@@ -55,4 +47,34 @@ func (c *Client) sendMessage(message string) error {
 
 func (c *Client) GetProperties() error {
 	return c.sendMessage("<getProperties version=\"1.7\"/>")
+}
+
+func recv(c net.Conn, msgch chan Message) {
+	buf := make([]byte, 2048)
+	var incompleteData []byte
+
+	for {
+		n, err := c.Read(buf)
+		if err != nil {
+			log.Println("read error:", err)
+			continue
+		}
+
+		data := append(incompleteData, buf[:n]...)
+		incompleteData = processData(data, msgch)
+	}
+}
+
+func processData(data []byte, msgch chan Message) []byte {
+	decoder := xml.NewDecoder(bytes.NewReader(data))
+
+	for {
+		var msg Message
+		err := decoder.Decode(&msg)
+		if err != nil {
+			return data
+		}
+
+		msgch <- msg
+	}
 }
