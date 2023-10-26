@@ -1,7 +1,6 @@
 package indiclient
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net"
@@ -11,10 +10,18 @@ type Client struct {
 	Conn net.Conn
 }
 
-func recv(c net.Conn, msg chan string) {
-	input := bufio.NewScanner(c)
-	for input.Scan() {
-		msg <- input.Text()
+func recv(c net.Conn, msgch chan string) {
+	buf := make([]byte, 2048)
+	for {
+		n, err := c.Read(buf)
+		if err != nil {
+			log.Println("read error:", err)
+			continue
+		}
+
+		msg := buf[:n]
+		log.Printf("[INDI Client] Received: %s", msg)
+		// msgch <- string(msg)
 	}
 }
 
@@ -30,7 +37,7 @@ func New(address string) (*Client, error) {
 	go func() {
 		for {
 			str := <-msg
-			log.Printf("Received: %s", str)
+			log.Printf("[INDI Client] Received: %s", str)
 		}
 	}()
 
