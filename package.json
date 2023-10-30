@@ -1,0 +1,16 @@
+{
+  "name": "indi-web",
+  "version": "1.0.0",
+  "description": "This is an attempt to write a web application to control astronomical equipment from a smartphone/tablet without the need to use a computer or remote desktop on the equipment controller.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss build -o assets/tailwind.css",
+    "watch": "tailwindcss build -o assets/tailwind.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.3.5"
+  }
+}

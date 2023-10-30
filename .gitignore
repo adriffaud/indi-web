@@ -1,4 +1,6 @@
 /bin/
 /tmp/
+node_modules/
+assets/tailwind.css
 
 *_templ.go
