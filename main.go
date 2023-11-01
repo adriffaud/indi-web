@@ -34,7 +34,23 @@ func setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	log.Printf("INDI Client: %+v\n", indiClient)
 
-	components.Setup(driverGroups).Render(r.Context(), w)
+	devices := make(map[string]indiserver.Device)
+	for _, driver := range driverGroups["Telescopes"] {
+		if driver.DriverName == "indi_simulator_telescope" && driver.Manufacturer == "Simulator" {
+			devices["mount"] = driver
+		}
+	}
+	for _, driver := range driverGroups["CCDs"] {
+		if driver.DriverName == "indi_simulator_ccd" && driver.Manufacturer == "Simulator" {
+			devices["ccd"] = driver
+		} else if driver.DriverName == "indi_simulator_guide" && driver.Manufacturer == "Simulator" {
+			devices["guide"] = driver
+		}
+	}
+
+	log.Printf("%+v\n", devices)
+
+	components.Setup(driverGroups, devices).Render(r.Context(), w)
 }
 
 func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -69,7 +85,7 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	// TODO: Wait for server start before creating the client
-	time.Sleep(400 * time.Millisecond)
+	time.Sleep(40 * time.Millisecond)
 
 	indiClient, err = indiclient.New("localhost:7624")
 	if err != nil {
@@ -79,14 +95,15 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	indiClient.GetProperties()
 
-	components.Main(indiserver.IsRunning()).Render(r.Context(), w)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 func main() {
 	router := httprouter.New()
 	router.GET("/", index)
+	router.POST("/", index)
 	router.GET("/setup", setup)
-	router.POST("/indi/activate", INDIServer)
+	router.POST("/setup", INDIServer)
 	router.ServeFiles("/static/*filepath", http.Dir("assets"))
 
 	server := &http.Server{

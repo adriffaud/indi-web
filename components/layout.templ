@@ -1,0 +1,17 @@
+package components
+
+templ Root() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<title>INDI Web</title>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<script src="static/htmx.min.js"></script>
+			<link rel="stylesheet" href="static/tailwind.css"/>
+		</head>
+		<body class="antialiased bg-slate-950 text-gray-200 container mx-auto max-w-full min-w-full max-h-full min-h-screen flex flex-col flex-grow md:place-content-center">
+			{ children... }
+		</body>
+	</html>
+}
