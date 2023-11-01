@@ -15,6 +15,16 @@ import (
 var indiClient *indiclient.Client
 
 func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if !indiserver.IsRunning() {
+		http.Redirect(w, r, "/setup", http.StatusTemporaryRedirect)
+	}
+
+	log.Printf("INDI Client: %+v\n", indiClient)
+
+	components.Main(indiserver.IsRunning()).Render(r.Context(), w)
+}
+
+func setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	driverGroups, err := indiserver.ListDrivers()
 	if err != nil {
 		log.Printf("could not get INDI drivers: %v", err)
@@ -24,7 +34,7 @@ func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	log.Printf("INDI Client: %+v\n", indiClient)
 
-	components.Page(indiserver.IsRunning(), driverGroups).Render(r.Context(), w)
+	components.Setup(driverGroups).Render(r.Context(), w)
 }
 
 func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -69,22 +79,23 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	indiClient.GetProperties()
 
-	components.IndiServerButton(true).Render(r.Context(), w)
+	components.Main(indiserver.IsRunning()).Render(r.Context(), w)
 }
 
 func main() {
 	router := httprouter.New()
 	router.GET("/", index)
+	router.GET("/setup", setup)
 	router.POST("/indi/activate", INDIServer)
 	router.ServeFiles("/static/*filepath", http.Dir("assets"))
 
 	server := &http.Server{
-		Addr:         "localhost:8080",
+		Addr:         ":8080",
 		Handler:      router,
 		ReadTimeout:  time.Second * 10,
 		WriteTimeout: time.Second * 10,
 	}
 
-	fmt.Printf("Listening on http://%v\n", server.Addr)
+	fmt.Printf("Listening on http://localhost%v\n", server.Addr)
 	server.ListenAndServe()
 }
