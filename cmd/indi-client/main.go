@@ -10,6 +10,11 @@ import (
 	"os"
 )
 
+type Message struct {
+	Type string
+	Data any
+}
+
 type BaseAttrs struct {
 	Name  string `xml:"name,attr"`
 	Label string `xml:"label,attr"`
@@ -78,19 +83,26 @@ func main() {
 	log.Println("connected")
 
 	exit := make(chan string)
+	data := make(chan Message)
 
-	go recv(conn)
+	go recv(conn, data)
 
 	_, err = fmt.Fprint(conn, "<getProperties version=\"1.7\"/>")
 	if err != nil {
 		log.Fatalf("failed to send message: %v", err)
 	}
 
-	// Wait forever until user kills the process
 	for {
 		select {
+		// Wait forever until user kills the process
 		case <-exit:
 			os.Exit(0)
+		case <-data:
+			log.Println("====================================================")
+			log.Println("received properties")
+			for v := range data {
+				fmt.Printf("%+v\n", v)
+			}
 		}
 	}
 }
@@ -108,10 +120,9 @@ func (tr Trimmer) Token() (xml.Token, error) {
 	return t, err
 }
 
-func recv(c net.Conn) {
+func recv(c net.Conn, ch chan<- Message) {
 	raw := xml.NewDecoder(c)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
-	properties := make([]interface{}, 0)
 
 	for {
 		t, err := decoder.Token()
@@ -131,27 +142,27 @@ func recv(c net.Conn) {
 			case "defNumberVector":
 				var defNumberVector DefNumberVector
 				decoder.DecodeElement(&defNumberVector, &se)
-				properties = append(properties, defNumberVector)
+				ch <- Message{Type: "NumberVector", Data: defNumberVector}
 			case "defSwitchVector":
 				var defSwitchVector DefSwitchVector
 				decoder.DecodeElement(&defSwitchVector, &se)
-				properties = append(properties, defSwitchVector)
+				ch <- Message{Type: "SwitchVector", Data: defSwitchVector}
 			case "defTextVector":
 				var defTextVector DefTextVector
 				decoder.DecodeElement(&defTextVector, &se)
-				properties = append(properties, defTextVector)
+				ch <- Message{Type: "TextVector", Data: defTextVector}
 			case "defNumber":
 				var defNumber DefNumber
 				decoder.DecodeElement(&defNumber, &se)
-				properties = append(properties, defNumber)
+				ch <- Message{Type: "Number", Data: defNumber}
 			case "defSwitch":
-				var defSwitch DefNumber
+				var defSwitch DefSwitch
 				decoder.DecodeElement(&defSwitch, &se)
-				properties = append(properties, defSwitch)
+				ch <- Message{Type: "Number", Data: defSwitch}
 			case "defText":
-				var defText DefNumber
+				var defText DefText
 				decoder.DecodeElement(&defText, &se)
-				properties = append(properties, defText)
+				ch <- Message{Type: "Text", Data: defText}
 			default:
 				log.Printf("Unhandled data type: %s\n", se.Name.Local)
 			}
