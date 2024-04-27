@@ -1,0 +1,20 @@
+package main
+
+import (
+	"net/http"
+
+	"github.com/julienschmidt/httprouter"
+)
+
+func (app *application) routes() *httprouter.Router {
+	router := httprouter.New()
+
+	router.ServeFiles("/static/*filepath", http.Dir("assets"))
+
+	router.GET("/", app.index)
+	router.POST("/", app.index)
+	router.GET("/setup", app.setup)
+	router.POST("/setup", app.INDIServer)
+
+	return router
+}

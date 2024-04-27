@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -12,19 +11,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-var indiClient *indiclient.Client
-
-func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if !indiserver.IsRunning() {
 		http.Redirect(w, r, "/setup", http.StatusTemporaryRedirect)
 	}
 
-	log.Printf("INDI Client: %+v\n", indiClient)
+	log.Printf("INDI Client: %+v\n", app.indiClient)
 
 	components.Main(indiserver.IsRunning()).Render(r.Context(), w)
 }
 
-func setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	driverGroups, err := indiserver.ListDrivers()
 	if err != nil {
 		log.Printf("could not get INDI drivers: %v", err)
@@ -32,7 +29,7 @@ func setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	log.Printf("INDI Client: %+v\n", indiClient)
+	log.Printf("INDI Client: %+v\n", app.indiClient)
 
 	devices := make(map[string]indiserver.Device)
 	for _, driver := range driverGroups["Telescopes"] {
@@ -53,7 +50,7 @@ func setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	components.Setup(driverGroups, devices).Render(r.Context(), w)
 }
 
-func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if indiserver.IsRunning() {
 		err := indiserver.Stop()
 		if err != nil {
@@ -61,7 +58,7 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			return
 		}
 
-		defer indiClient.Conn.Close()
+		defer app.indiClient.Conn.Close()
 
 		w.Header().Add("HX-Location", "/")
 		return
@@ -87,32 +84,14 @@ func INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// TODO: Wait for server start before creating the client
 	time.Sleep(40 * time.Millisecond)
 
-	indiClient, err = indiclient.New("localhost:7624")
+	client, err := indiclient.New("localhost:7624")
+	app.indiClient = *client
 	if err != nil {
 		log.Printf("could not start INDI client: %v", err)
 		return
 	}
 
-	indiClient.GetProperties()
+	app.indiClient.GetProperties()
 
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-}
-
-func main() {
-	router := httprouter.New()
-	router.GET("/", index)
-	router.POST("/", index)
-	router.GET("/setup", setup)
-	router.POST("/setup", INDIServer)
-	router.ServeFiles("/static/*filepath", http.Dir("assets"))
-
-	server := &http.Server{
-		Addr:         ":8080",
-		Handler:      router,
-		ReadTimeout:  time.Second * 10,
-		WriteTimeout: time.Second * 10,
-	}
-
-	fmt.Printf("Listening on http://localhost%v\n", server.Addr)
-	server.ListenAndServe()
 }
