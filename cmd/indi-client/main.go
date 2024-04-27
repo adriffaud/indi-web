@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -8,12 +9,15 @@ import (
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 )
 
-const HOST = "localhost:7624"
-
 func main() {
-	log.Println("Connecting to INDI server")
+	var host string
 
-	client, err := indiclient.New(HOST)
+	flag.StringVar(&host, "host", "localhost:7624", "INDI server address")
+	flag.Parse()
+
+	log.Printf("Connecting to INDI server at %s\n", host)
+
+	client, err := indiclient.New(host)
 	if err != nil {
 		log.Fatalf("could not create INDI client: %q", err)
 	}
