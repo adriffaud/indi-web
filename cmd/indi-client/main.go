@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 )
@@ -24,21 +23,20 @@ func main() {
 
 	log.Println("connected")
 
-	exit := make(chan string)
 	err = client.GetProperties()
 	if err != nil {
 		log.Fatalf("could not get INDI properties: %q", err)
 	}
 
+	properties := make([]interface{}, 0)
+
+	// Wait forever until user kills the process
 	for {
 		select {
-		// Wait forever until user kills the process
-		case <-exit:
-			os.Exit(0)
-		case <-client.Data:
-			for v := range client.Data {
-				fmt.Printf("%+v\n", v)
-			}
+		case <-client.Channel:
+			v := <-client.Channel
+			fmt.Printf("%T\n", v)
+			properties = append(properties, v)
 		}
 	}
 }

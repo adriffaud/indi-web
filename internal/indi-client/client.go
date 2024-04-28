@@ -9,14 +9,9 @@ import (
 	"net"
 )
 
-type Message struct {
-	Type string
-	Data any
-}
-
 type Client struct {
-	Conn net.Conn
-	Data chan Message
+	conn    net.Conn
+	Channel chan any
 }
 
 func New(address string) (*Client, error) {
@@ -25,17 +20,17 @@ func New(address string) (*Client, error) {
 		return nil, err
 	}
 
-	data := make(chan Message)
-	go recv(conn, data)
+	ch := make(chan any)
+	go recv(conn, ch)
 
 	return &Client{
-		Conn: conn,
-		Data: data,
+		conn:    conn,
+		Channel: ch,
 	}, nil
 }
 
 func (c *Client) sendMessage(message string) error {
-	_, err := fmt.Fprint(c.Conn, message)
+	_, err := fmt.Fprint(c.conn, message)
 	if err != nil {
 		return fmt.Errorf("failed to send message: %v", err)
 	}
@@ -60,7 +55,7 @@ func (tr Trimmer) Token() (xml.Token, error) {
 	return t, err
 }
 
-func recv(c net.Conn, ch chan<- Message) {
+func recv(c net.Conn, ch chan<- any) {
 	raw := xml.NewDecoder(c)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
 
@@ -82,27 +77,27 @@ func recv(c net.Conn, ch chan<- Message) {
 			case "defNumberVector":
 				var defNumberVector DefNumberVector
 				decoder.DecodeElement(&defNumberVector, &se)
-				ch <- Message{Type: "NumberVector", Data: defNumberVector}
+				ch <- defNumberVector
 			case "defSwitchVector":
 				var defSwitchVector DefSwitchVector
 				decoder.DecodeElement(&defSwitchVector, &se)
-				ch <- Message{Type: "SwitchVector", Data: defSwitchVector}
+				ch <- defSwitchVector
 			case "defTextVector":
 				var defTextVector DefTextVector
 				decoder.DecodeElement(&defTextVector, &se)
-				ch <- Message{Type: "TextVector", Data: defTextVector}
+				ch <- defTextVector
 			case "defNumber":
 				var defNumber DefNumber
 				decoder.DecodeElement(&defNumber, &se)
-				ch <- Message{Type: "Number", Data: defNumber}
+				ch <- defNumber
 			case "defSwitch":
 				var defSwitch DefSwitch
 				decoder.DecodeElement(&defSwitch, &se)
-				ch <- Message{Type: "Number", Data: defSwitch}
+				ch <- defSwitch
 			case "defText":
 				var defText DefText
 				decoder.DecodeElement(&defText, &se)
-				ch <- Message{Type: "Text", Data: defText}
+				ch <- defText
 			default:
 				log.Printf("Unhandled data type: %s\n", se.Name.Local)
 			}
