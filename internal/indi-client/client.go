@@ -8,7 +8,8 @@ import (
 	"net"
 )
 
-type Property struct{}
+type Property struct {
+}
 
 type Client struct {
 	conn    net.Conn
@@ -65,18 +66,15 @@ func (c *Client) listen(conn net.Conn) {
 			case "defNumberVector":
 				var defNumberVector DefNumberVector
 				decoder.DecodeElement(&defNumberVector, &se)
-
-				if _, ok := c.Devices[defNumberVector.Device]; !ok {
-					c.Devices[defNumberVector.Device] = make(map[string]any)
-				}
-
-				c.Devices[defNumberVector.Device][defNumberVector.Group] = defNumberVector
+				c.addDeviceProperties(defNumberVector)
 			case "defSwitchVector":
 				var defSwitchVector DefSwitchVector
 				decoder.DecodeElement(&defSwitchVector, &se)
+				c.addDeviceProperties(defSwitchVector)
 			case "defTextVector":
 				var defTextVector DefTextVector
 				decoder.DecodeElement(&defTextVector, &se)
+				c.addDeviceProperties(defTextVector)
 			case "defNumber":
 				var defNumber DefNumber
 				decoder.DecodeElement(&defNumber, &se)
@@ -102,4 +100,12 @@ func (c *Client) listen(conn net.Conn) {
 		default:
 		}
 	}
+}
+
+func (c *Client) addDeviceProperties(properties VectorAttrs) {
+	if _, ok := c.Devices[properties.Device]; !ok {
+		c.Devices[properties.Device] = make(map[string]any)
+	}
+
+	c.Devices[properties.Device][properties.Group] = properties
 }

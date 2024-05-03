@@ -7,6 +7,10 @@ type BaseAttrs struct {
 	Label string `xml:"label,attr"`
 }
 
+type Vector interface {
+	DefNumberVector | DefSwitchVector | DefTextVector | VectorAttrs
+}
+
 type VectorAttrs struct {
 	Device    string `xml:"device,attr"`
 	Group     string `xml:"group,attr"`
