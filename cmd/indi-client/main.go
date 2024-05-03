@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
@@ -28,15 +27,6 @@ func main() {
 		log.Fatalf("could not get INDI properties: %q", err)
 	}
 
-	properties := make([]interface{}, 0)
-
 	// Wait forever until user kills the process
-	for {
-		select {
-		case <-client.Channel:
-			v := <-client.Channel
-			fmt.Printf("%T\n", v)
-			properties = append(properties, v)
-		}
-	}
+	select {}
 }

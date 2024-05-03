@@ -1,7 +1,6 @@
 package indiclient
 
 import (
-	"bytes"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -9,9 +8,11 @@ import (
 	"net"
 )
 
+type Property struct{}
+
 type Client struct {
 	conn    net.Conn
-	Channel chan any
+	Devices map[string]map[string]any
 }
 
 func New(address string) (*Client, error) {
@@ -20,13 +21,17 @@ func New(address string) (*Client, error) {
 		return nil, err
 	}
 
-	ch := make(chan any)
-	go recv(conn, ch)
-
-	return &Client{
+	client := &Client{
 		conn:    conn,
-		Channel: ch,
-	}, nil
+		Devices: make(map[string]map[string]any),
+	}
+	go client.listen(conn)
+
+	return client, nil
+}
+
+func (c *Client) GetProperties() error {
+	return c.sendMessage("<getProperties version=\"1.7\"/>")
 }
 
 func (c *Client) sendMessage(message string) error {
@@ -38,25 +43,8 @@ func (c *Client) sendMessage(message string) error {
 	return nil
 }
 
-func (c *Client) GetProperties() error {
-	return c.sendMessage("<getProperties version=\"1.7\"/>")
-}
-
-// Trimmer is used to remove blank space from received XML
-type Trimmer struct {
-	dec *xml.Decoder
-}
-
-func (tr Trimmer) Token() (xml.Token, error) {
-	t, err := tr.dec.Token()
-	if cd, ok := t.(xml.CharData); ok {
-		t = xml.CharData(bytes.TrimSpace(cd))
-	}
-	return t, err
-}
-
-func recv(c net.Conn, ch chan<- any) {
-	raw := xml.NewDecoder(c)
+func (c *Client) listen(conn net.Conn) {
+	raw := xml.NewDecoder(conn)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
 
 	for {
@@ -77,29 +65,39 @@ func recv(c net.Conn, ch chan<- any) {
 			case "defNumberVector":
 				var defNumberVector DefNumberVector
 				decoder.DecodeElement(&defNumberVector, &se)
-				ch <- defNumberVector
+
+				if _, ok := c.Devices[defNumberVector.Device]; !ok {
+					c.Devices[defNumberVector.Device] = make(map[string]any)
+				}
+
+				c.Devices[defNumberVector.Device][defNumberVector.Group] = defNumberVector
 			case "defSwitchVector":
 				var defSwitchVector DefSwitchVector
 				decoder.DecodeElement(&defSwitchVector, &se)
-				ch <- defSwitchVector
 			case "defTextVector":
 				var defTextVector DefTextVector
 				decoder.DecodeElement(&defTextVector, &se)
-				ch <- defTextVector
 			case "defNumber":
 				var defNumber DefNumber
 				decoder.DecodeElement(&defNumber, &se)
-				ch <- defNumber
 			case "defSwitch":
 				var defSwitch DefSwitch
 				decoder.DecodeElement(&defSwitch, &se)
-				ch <- defSwitch
 			case "defText":
 				var defText DefText
 				decoder.DecodeElement(&defText, &se)
-				ch <- defText
 			default:
 				log.Printf("Unhandled data type: %s\n", se.Name.Local)
+			}
+
+			fmt.Println("=======================================================")
+			for device, groups := range c.Devices {
+				fmt.Printf("Device: %s\n", device)
+				for group, properties := range groups {
+					fmt.Println("---")
+					fmt.Printf("Group: %s\n", group)
+					fmt.Printf("%+v\n", properties)
+				}
 			}
 		default:
 		}
