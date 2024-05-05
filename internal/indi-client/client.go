@@ -8,12 +8,35 @@ import (
 	"net"
 )
 
+type PropertyType int64
+
+const (
+	Number PropertyType = iota
+	Switch
+	Text
+)
+
 type Property struct {
+	Device    string
+	Group     string
+	Type      PropertyType
+	Name      string
+	Label     string
+	State     string
+	Perm      string
+	Timeout   int
+	Timestamp string
+	Format    string
+	Min       string
+	Max       string
+	Step      string
+	Rule      string
+	Values    []interface{}
 }
 
 type Client struct {
 	conn    net.Conn
-	Devices map[string]map[string]any
+	Devices map[string]map[string][]Property
 }
 
 func New(address string) (*Client, error) {
@@ -24,7 +47,7 @@ func New(address string) (*Client, error) {
 
 	client := &Client{
 		conn:    conn,
-		Devices: make(map[string]map[string]any),
+		Devices: make(map[string]map[string][]Property),
 	}
 	go client.listen(conn)
 
@@ -66,26 +89,41 @@ func (c *Client) listen(conn net.Conn) {
 			case "defNumberVector":
 				var defNumberVector DefNumberVector
 				decoder.DecodeElement(&defNumberVector, &se)
-				c.addDeviceProperties(defNumberVector)
+
+				property := Property{
+					Device: defNumberVector.Device,
+					Group:  defNumberVector.Group,
+					Type:   Number,
+					Name:   defNumberVector.Label,
+				}
+
+				c.addToTree(property)
 			case "defSwitchVector":
 				var defSwitchVector DefSwitchVector
 				decoder.DecodeElement(&defSwitchVector, &se)
-				c.addDeviceProperties(defSwitchVector)
+
+				property := Property{
+					Device: defSwitchVector.Device,
+					Group:  defSwitchVector.Group,
+					Type:   Switch,
+					Name:   defSwitchVector.Label,
+				}
+
+				c.addToTree(property)
 			case "defTextVector":
 				var defTextVector DefTextVector
 				decoder.DecodeElement(&defTextVector, &se)
-				c.addDeviceProperties(defTextVector)
-			case "defNumber":
-				var defNumber DefNumber
-				decoder.DecodeElement(&defNumber, &se)
-			case "defSwitch":
-				var defSwitch DefSwitch
-				decoder.DecodeElement(&defSwitch, &se)
-			case "defText":
-				var defText DefText
-				decoder.DecodeElement(&defText, &se)
+
+				property := Property{
+					Device: defTextVector.Device,
+					Group:  defTextVector.Group,
+					Type:   Text,
+					Name:   defTextVector.Label,
+				}
+
+				c.addToTree(property)
 			default:
-				log.Printf("Unhandled data type: %s\n", se.Name.Local)
+				log.Printf("!!!! Unhandled data type: %s\n", se.Name.Local)
 			}
 
 			fmt.Println("=======================================================")
@@ -94,7 +132,9 @@ func (c *Client) listen(conn net.Conn) {
 				for group, properties := range groups {
 					fmt.Println("---")
 					fmt.Printf("Group: %s\n", group)
-					fmt.Printf("%+v\n", properties)
+					for _, property := range properties {
+						fmt.Printf("%+v\n", property)
+					}
 				}
 			}
 		default:
@@ -102,10 +142,12 @@ func (c *Client) listen(conn net.Conn) {
 	}
 }
 
-func (c *Client) addDeviceProperties(properties VectorAttrs) {
-	if _, ok := c.Devices[properties.Device]; !ok {
-		c.Devices[properties.Device] = make(map[string]any)
+func (c *Client) addToTree(property Property) {
+	if _, exists := c.Devices[property.Device]; !exists {
+		c.Devices[property.Device] = make(map[string][]Property)
 	}
-
-	c.Devices[properties.Device][properties.Group] = properties
+	if _, exists := c.Devices[property.Device][property.Group]; !exists {
+		c.Devices[property.Device][property.Group] = make([]Property, 0)
+	}
+	c.Devices[property.Device][property.Group] = append(c.Devices[property.Device][property.Group], property)
 }
