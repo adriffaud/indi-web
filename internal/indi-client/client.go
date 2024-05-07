@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"strconv"
 )
 
 type PropertyType int64
@@ -15,6 +16,12 @@ const (
 	Switch
 	Text
 )
+
+type Value struct {
+	Name  string
+	Label string
+	Value string
+}
 
 type Property struct {
 	Device    string
@@ -26,13 +33,11 @@ type Property struct {
 	Perm      string
 	Timeout   int
 	Timestamp string
-	Format    string
-	Min       string
-	Max       string
-	Step      string
 	Rule      string
-	Values    []interface{}
+	Values    []Value
 }
+
+type Device map[string]map[string][]Property
 
 type Client struct {
 	conn    net.Conn
@@ -52,6 +57,10 @@ func New(address string) (*Client, error) {
 	go client.listen(conn)
 
 	return client, nil
+}
+
+func (c *Client) Close() {
+	c.conn.Close()
 }
 
 func (c *Client) GetProperties() error {
@@ -91,11 +100,22 @@ func (c *Client) listen(conn net.Conn) {
 				decoder.DecodeElement(&defNumberVector, &se)
 
 				property := Property{
-					Device: defNumberVector.Device,
-					Group:  defNumberVector.Group,
-					Type:   Number,
-					Name:   defNumberVector.Label,
+					Device:    defNumberVector.Device,
+					Group:     defNumberVector.Group,
+					Type:      Number,
+					Name:      defNumberVector.Name,
+					Label:     defNumberVector.Label,
+					State:     defNumberVector.State,
+					Perm:      defNumberVector.Perm,
+					Timeout:   defNumberVector.Timeout,
+					Timestamp: defNumberVector.Timestamp,
 				}
+
+				values := make([]Value, 0)
+				for _, number := range defNumberVector.DefNumber {
+					values = append(values, Value{Name: number.Name, Label: number.Label, Value: strconv.Itoa(number.Value)})
+				}
+				property.Values = values
 
 				c.addToTree(property)
 			case "defSwitchVector":
@@ -103,11 +123,23 @@ func (c *Client) listen(conn net.Conn) {
 				decoder.DecodeElement(&defSwitchVector, &se)
 
 				property := Property{
-					Device: defSwitchVector.Device,
-					Group:  defSwitchVector.Group,
-					Type:   Switch,
-					Name:   defSwitchVector.Label,
+					Device:    defSwitchVector.Device,
+					Group:     defSwitchVector.Group,
+					Type:      Switch,
+					Name:      defSwitchVector.Name,
+					Label:     defSwitchVector.Label,
+					State:     defSwitchVector.State,
+					Perm:      defSwitchVector.Perm,
+					Timeout:   defSwitchVector.Timeout,
+					Timestamp: defSwitchVector.Timestamp,
+					Rule:      defSwitchVector.Rule,
 				}
+
+				values := make([]Value, 0)
+				for _, item := range defSwitchVector.DefSwitch {
+					values = append(values, Value{Name: item.Name, Label: item.Label, Value: item.Value})
+				}
+				property.Values = values
 
 				c.addToTree(property)
 			case "defTextVector":
@@ -115,27 +147,26 @@ func (c *Client) listen(conn net.Conn) {
 				decoder.DecodeElement(&defTextVector, &se)
 
 				property := Property{
-					Device: defTextVector.Device,
-					Group:  defTextVector.Group,
-					Type:   Text,
-					Name:   defTextVector.Label,
+					Device:    defTextVector.Device,
+					Group:     defTextVector.Group,
+					Type:      Text,
+					Name:      defTextVector.Name,
+					Label:     defTextVector.Label,
+					State:     defTextVector.State,
+					Perm:      defTextVector.Perm,
+					Timeout:   defTextVector.Timeout,
+					Timestamp: defTextVector.Timestamp,
 				}
+
+				values := make([]Value, 0)
+				for _, text := range defTextVector.DefText {
+					values = append(values, Value{Name: text.Name, Label: text.Label, Value: text.Value})
+				}
+				property.Values = values
 
 				c.addToTree(property)
 			default:
 				log.Printf("!!!! Unhandled data type: %s\n", se.Name.Local)
-			}
-
-			fmt.Println("=======================================================")
-			for device, groups := range c.Devices {
-				fmt.Printf("Device: %s\n", device)
-				for group, properties := range groups {
-					fmt.Println("---")
-					fmt.Printf("Group: %s\n", group)
-					for _, property := range properties {
-						fmt.Printf("%+v\n", property)
-					}
-				}
 			}
 		default:
 		}
@@ -150,4 +181,5 @@ func (c *Client) addToTree(property Property) {
 		c.Devices[property.Device][property.Group] = make([]Property, 0)
 	}
 	c.Devices[property.Device][property.Group] = append(c.Devices[property.Device][property.Group], property)
+
 }

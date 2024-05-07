@@ -2,59 +2,105 @@ package components
 
 import "github.com/adriffaud/indi-web/internal/indi-server"
 import "strings"
+import "github.com/adriffaud/indi-web/internal/indi-client"
+import "strconv"
 
-templ Main(running bool) {
+templ Main(running bool, devices map[string]map[string][]indiclient.Property) {
 	@Root() {
 		<div>
-			TODO
+			<table>
+				for device, groups := range devices {
+					<tr>
+						<th colspan="7" style="background-color: red;">{ device }</th>
+					</tr>
+					<tr style="background-color: grey;">
+						<th>Label</th>
+						<th>Name</th>
+						<th>State</th>
+						<th>Permission</th>
+						<th>Rule</th>
+						<th>Timeout</th>
+						<th>Timestamp</th>
+					</tr>
+					for group, properties := range groups {
+						<tr>
+							<th colspan="7" style="background-color: aqua;">{ group }</th>
+						</tr>
+						for _, property := range properties {
+							<tr>
+								<td>{ property.Label }</td>
+								<td>{ property.Name }</td>
+								<td>{ property.State }</td>
+								<td>{ property.Perm }</td>
+								<td>{ property.Rule }</td>
+								<td>{ strconv.Itoa(property.Timeout) }</td>
+								<td>{ property.Timestamp }</td>
+							</tr>
+							for _, value := range property.Values {
+								<tr>
+									<td colspan="3">{ value.Label }</td>
+									<td colspan="2">{ value.Name }</td>
+									<td colspan="2">{ value.Value }</td>
+								</tr>
+							}
+							<tr></tr>
+						}
+					}
+				}
+			</table>
 		</div>
 	}
 }
 
 templ driverSelector(group string, drivers []indiserver.Device, selection indiserver.Device) {
-<div>
-	<label for={ strings.ToLower(group) + "_select" }>{ group }:</label>
-	<select id={ strings.ToLower(group) } name={ strings.ToLower(group) + "_select" }>
-		<option value=""></option>
-		for _, driver := range drivers {
-		<option value={ driver.DriverName } if selection.DriverName==driver.DriverName &&
-			selection.Manufacturer==driver.Manufacturer { selected }>
-			{ driver.Manufacturer } - { driver.Name }
-		</option>
-		}
-	</select>
-</div>
+	<div>
+		<label for={ strings.ToLower(group) + "_select" }>{ group }:</label>
+		<select id={ strings.ToLower(group) } name={ strings.ToLower(group) + "_select" }>
+			<option value=""></option>
+			for _, driver := range drivers {
+				<option
+					value={ driver.DriverName }
+					if selection.DriverName==driver.DriverName &&
+			selection.Manufacturer==driver.Manufacturer {
+						selected
+					}
+				>
+					{ driver.Manufacturer } - { driver.Name }
+				</option>
+			}
+		</select>
+	</div>
 }
 
 templ input(id, value string) {
-<input id={ id } value={ value } />
+	<input id={ id } value={ value }/>
 }
 
 templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver.Device) {
-@Root() {
-<form method="post">
-	<div>
-		<div>
+	@Root() {
+		<form method="post">
 			<div>
-				<label for="date-time">Date/Time</label>
-				@input("date-time", "2023-11-01 20:45")
+				<div>
+					<div>
+						<label for="date-time">Date/Time</label>
+						@input("date-time", "2023-11-01 20:45")
+					</div>
+					<div>
+						<label for="latitude">Latitude</label>
+						@input("latitude", "N 47º 14' 25\"")
+					</div>
+					<div>
+						<label for="longitude">Longitude</label>
+						@input("longitude", "E 05º 55' 57\"")
+					</div>
+				</div>
+				<div>
+					@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
+					@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
+					@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
+					<input id="indi_server" type="submit" value="Start"/>
+				</div>
 			</div>
-			<div>
-				<label for="latitude">Latitude</label>
-				@input("latitude", "N 47º 14' 25\"")
-			</div>
-			<div>
-				<label for="longitude">Longitude</label>
-				@input("longitude", "E 05º 55' 57\"")
-			</div>
-		</div>
-		<div>
-			@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
-			@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
-			@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
-			<input id="indi_server" type="submit" value="Start" />
-		</div>
-	</div>
-</form>
-}
+		</form>
+	}
 }

@@ -16,9 +16,7 @@ func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprout
 		http.Redirect(w, r, "/setup", http.StatusTemporaryRedirect)
 	}
 
-	log.Printf("INDI Client: %+v\n", app.indiClient)
-
-	components.Main(indiserver.IsRunning()).Render(r.Context(), w)
+	components.Main(indiserver.IsRunning(), app.indiClient.Devices).Render(r.Context(), w)
 }
 
 func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
