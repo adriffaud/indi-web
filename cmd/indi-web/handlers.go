@@ -58,7 +58,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 			return
 		}
 
-		defer app.indiClient.Conn.Close()
+		defer app.indiClient.Close()
 
 		w.Header().Add("HX-Location", "/")
 		return
