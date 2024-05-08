@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
@@ -13,6 +14,9 @@ type application struct {
 }
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	app := application{}
 
 	server := &http.Server{
@@ -22,6 +26,6 @@ func main() {
 		WriteTimeout: time.Second * 10,
 	}
 
-	fmt.Printf("Listening on http://localhost%v\n", server.Addr)
+	slog.Info("starting server", "addr", server.Addr)
 	server.ListenAndServe()
 }

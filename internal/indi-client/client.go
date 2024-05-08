@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net"
 	"strconv"
 )
@@ -87,7 +87,7 @@ func (c *Client) listen(conn net.Conn) {
 				continue
 			}
 			if err == io.EOF {
-				log.Println("EOF")
+				slog.Info("EOF")
 				break
 			}
 		}
@@ -166,9 +166,10 @@ func (c *Client) listen(conn net.Conn) {
 
 				c.addToTree(property)
 			default:
-				log.Printf("!!!! Unhandled data type: %s\n", se.Name.Local)
+				slog.Warn("Unhandled data type", "type", se.Name.Local)
 			}
 		default:
+			slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t))
 		}
 	}
 }

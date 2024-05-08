@@ -2,6 +2,7 @@ package indiserver
 
 import (
 	"log"
+	"log/slog"
 	"os/exec"
 	"sync"
 	"syscall"
@@ -17,7 +18,7 @@ func Start(drivers []string) error {
 		return nil
 	}
 
-	log.Printf("Starting INDI server with drivers: %v\n", drivers)
+	slog.Info("Starting INDI server", "drivers", drivers)
 
 	cmdLock.Lock()
 	defer cmdLock.Unlock()
@@ -45,7 +46,7 @@ func Stop() error {
 	_ = cmd.Wait()
 	cmd = nil
 
-	log.Println("Stopped INDI server")
+	slog.Info("Stopped INDI server")
 	return nil
 }
 

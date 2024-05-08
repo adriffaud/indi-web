@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -22,12 +22,10 @@ func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprout
 func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	driverGroups, err := indiserver.ListDrivers()
 	if err != nil {
-		log.Printf("could not get INDI drivers: %v", err)
+		slog.Error("could not get INDI drivers", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	log.Printf("INDI Client: %+v\n", app.indiClient)
 
 	devices := make(map[string]indiserver.Device)
 	for _, driver := range driverGroups["Telescopes"] {
@@ -43,8 +41,6 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 		}
 	}
 
-	log.Printf("%+v\n", devices)
-
 	components.Setup(driverGroups, devices).Render(r.Context(), w)
 }
 
@@ -52,7 +48,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 	if indiserver.IsRunning() {
 		err := indiserver.Stop()
 		if err != nil {
-			log.Printf("could not stop INDI server: %v", err)
+			slog.Error("could not stop INDI server", "error", err)
 			return
 		}
 
@@ -75,7 +71,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 
 	err = indiserver.Start(d)
 	if err != nil {
-		log.Printf("could not start INDI server: %v", err)
+		slog.Info("could not start INDI server", "error", err)
 		return
 	}
 
@@ -85,7 +81,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 	client, err := indiclient.New("localhost:7624")
 	app.indiClient = *client
 	if err != nil {
-		log.Printf("could not start INDI client: %v", err)
+		slog.Info("could not start INDI client", "error", err)
 		return
 	}
 

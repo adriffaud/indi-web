@@ -2,7 +2,8 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
+	"os"
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 )
@@ -13,18 +14,20 @@ func main() {
 	flag.StringVar(&host, "host", "localhost:7624", "INDI server address")
 	flag.Parse()
 
-	log.Printf("Connecting to INDI server at %s\n", host)
+	slog.Info("Connecting to INDI server", "host", host)
 
 	client, err := indiclient.New(host)
 	if err != nil {
-		log.Fatalf("could not create INDI client: %q", err)
+		slog.Error("could not create INDI client", "error", err)
+		os.Exit(1)
 	}
 
-	log.Println("connected")
+	slog.Info("connected")
 
 	err = client.GetProperties()
 	if err != nil {
-		log.Fatalf("could not get INDI properties: %q", err)
+		slog.Error("could not get INDI properties", "error", err)
+		os.Exit(1)
 	}
 
 	// Wait forever until user kills the process
