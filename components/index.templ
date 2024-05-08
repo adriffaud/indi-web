@@ -5,8 +5,23 @@ import "strings"
 import "github.com/adriffaud/indi-web/internal/indi-client"
 import "strconv"
 
-templ Main(running bool, properties indiclient.Properties) {
+templ navigation() {
+	<nav>
+		<a href="/">Home</a>
+		<a href="/hardware">Hardware configuration</a>
+	</nav>
+}
+
+templ Main() {
 	@Root() {
+		@navigation()
+		<div></div>
+	}
+}
+
+templ Hardware(properties indiclient.Properties) {
+	@Root() {
+		@navigation()
 		<div>
 			<table>
 				for _, device := range properties.GetDevicesSorted() {

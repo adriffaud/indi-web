@@ -12,12 +12,11 @@ import (
 )
 
 func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	if !indiserver.IsRunning() {
-		http.Redirect(w, r, "/setup", http.StatusTemporaryRedirect)
-		return
-	}
+	components.Main().Render(r.Context(), w)
+}
 
-	components.Main(indiserver.IsRunning(), app.indiClient.Properties).Render(r.Context(), w)
+func (app *application) hardware(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	components.Hardware(app.indiClient.Properties).Render(r.Context(), w)
 }
 
 func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
