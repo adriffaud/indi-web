@@ -58,7 +58,7 @@ test/cover:
 ## build: build the application
 .PHONY: build
 build:
-	# Include additional build steps, like TypeScript, SCSS or Tailwind compilation here...
+	go run github.com/a-h/templ/cmd/templ@v0.2.680 generate
 	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
@@ -69,7 +69,7 @@ run: build
 ## run/live: run the application with reloading on file changes
 .PHONY: run/live
 run/live:
-	go run github.com/cosmtrek/air@v1.43.0 \
+	go run github.com/cosmtrek/air@v1.52.0 \
 		--build.cmd "make build" --build.bin "/tmp/bin/${BINARY_NAME}" --build.delay "100" \
 		--build.exclude_dir "node_modules" \
 		--build.include_ext "go, tpl, tmpl, html, css, scss, js, ts, sql, jpeg, jpg, gif, png, bmp, svg, webp, ico" \
