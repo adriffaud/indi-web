@@ -3,27 +3,13 @@ package components
 import "github.com/adriffaud/indi-web/internal/indi-server"
 import "strings"
 import "github.com/adriffaud/indi-web/internal/indi-client"
-import "sort"
+import "strconv"
 
-func getSortedDevicesKeys(properties []indiclient.Property) []string {
-	allKeys := make(map[string]bool)
-	keys := []string{}
-	for _, property := range properties {
-		if _, value := allKeys[property.Device]; !value {
-			allKeys[property.Device] = true
-			keys = append(keys, property.Device)
-		}
-	}
-
-	sort.Strings(keys)
-	return keys
-}
-
-templ Main(running bool, properties []indiclient.Property) {
+templ Main(running bool, properties indiclient.Properties) {
 	@Root() {
 		<div>
 			<table>
-				for _, device := range getSortedDevicesKeys(properties) {
+				for _, device := range properties.GetDevicesSorted() {
 					<tr>
 						<th colspan="7" style="background-color: red;">{ device }</th>
 					</tr>
@@ -36,6 +22,29 @@ templ Main(running bool, properties []indiclient.Property) {
 						<th>Timeout</th>
 						<th>Timestamp</th>
 					</tr>
+					for _, group := range properties.GetDeviceGroupsSorted(device) {
+						<tr>
+							<th colspan="7" style="background-color: cyan;">{ group }</th>
+						</tr>
+						for _, property := range properties.GetPropertiesForDeviceGroup(device, group) {
+							<tr>
+								<td>{ property.Label }</td>
+								<td>{ property.Name }</td>
+								<td>{ property.State }</td>
+								<td>{ property.Perm }</td>
+								<td>{ property.Rule }</td>
+								<td>{ strconv.Itoa(property.Timeout) }</td>
+								<td>{ property.Timestamp }</td>
+							</tr>
+							for _, value := range property.Values {
+								<tr>
+									<td colspan="3">{ value.Label }</td>
+									<td colspan="2">{ value.Name }</td>
+									<td colspan="2"><strong>{ value.Value }</strong></td>
+								</tr>
+							}
+						}
+					}
 				}
 			</table>
 		</div>

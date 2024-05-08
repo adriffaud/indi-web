@@ -9,37 +9,9 @@ import (
 	"strconv"
 )
 
-type PropertyType int64
-
-const (
-	Number PropertyType = iota
-	Switch
-	Text
-)
-
-type Value struct {
-	Name  string
-	Label string
-	Value string
-}
-
-type Property struct {
-	Device    string
-	Group     string
-	Type      PropertyType
-	Name      string
-	Label     string
-	State     string
-	Perm      string
-	Timeout   int
-	Timestamp string
-	Rule      string
-	Values    []Value
-}
-
 type Client struct {
 	conn       net.Conn
-	Properties []Property
+	Properties Properties
 }
 
 func New(address string) (*Client, error) {
