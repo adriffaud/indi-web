@@ -14,11 +14,10 @@ import (
 func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if !indiserver.IsRunning() {
 		http.Redirect(w, r, "/setup", http.StatusTemporaryRedirect)
+		return
 	}
 
-	slog.Debug("properties", "count", len(app.indiClient.Properties), "values", app.indiClient.Properties)
-
-	components.Main(indiserver.IsRunning(), app.indiClient.Devices).Render(r.Context(), w)
+	components.Main(indiserver.IsRunning(), app.indiClient.Properties).Render(r.Context(), w)
 }
 
 func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -86,7 +85,6 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 		slog.Info("could not start INDI client", "error", err)
 		return
 	}
-
 	app.indiClient.GetProperties()
 
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)

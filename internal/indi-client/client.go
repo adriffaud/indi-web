@@ -39,19 +39,17 @@ type Property struct {
 
 type Client struct {
 	conn       net.Conn
-	Devices    map[string]map[string][]Property
 	Properties []Property
 }
 
-func New(address string) (Client, error) {
+func New(address string) (*Client, error) {
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		return Client{}, err
+		return nil, err
 	}
 
-	client := Client{
+	client := &Client{
 		conn:       conn,
-		Devices:    make(map[string]map[string][]Property),
 		Properties: make([]Property, 0),
 	}
 
@@ -60,15 +58,15 @@ func New(address string) (Client, error) {
 	return client, nil
 }
 
-func (c Client) Close() {
+func (c *Client) Close() {
 	c.conn.Close()
 }
 
-func (c Client) GetProperties() error {
+func (c *Client) GetProperties() error {
 	return c.sendMessage("<getProperties version=\"1.7\"/>")
 }
 
-func (c Client) sendMessage(message string) error {
+func (c *Client) sendMessage(message string) error {
 	_, err := fmt.Fprint(c.conn, message)
 	if err != nil {
 		return fmt.Errorf("failed to send message: %v", err)
@@ -77,7 +75,7 @@ func (c Client) sendMessage(message string) error {
 	return nil
 }
 
-func (c Client) listen(conn net.Conn) {
+func (c *Client) listen(conn net.Conn) {
 	raw := xml.NewDecoder(conn)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
 
@@ -118,7 +116,7 @@ func (c Client) listen(conn net.Conn) {
 				}
 				property.Values = values
 
-				c.addToTree(property)
+				c.Properties = append(c.Properties, property)
 			case "defSwitchVector":
 				var defSwitchVector DefSwitchVector
 				decoder.DecodeElement(&defSwitchVector, &se)
@@ -142,7 +140,7 @@ func (c Client) listen(conn net.Conn) {
 				}
 				property.Values = values
 
-				c.addToTree(property)
+				c.Properties = append(c.Properties, property)
 			case "defTextVector":
 				var defTextVector DefTextVector
 				decoder.DecodeElement(&defTextVector, &se)
@@ -165,7 +163,7 @@ func (c Client) listen(conn net.Conn) {
 				}
 				property.Values = values
 
-				c.addToTree(property)
+				c.Properties = append(c.Properties, property)
 			default:
 				// slog.Warn("Unhandled data type", "type", se.Name.Local)
 			}
@@ -173,16 +171,4 @@ func (c Client) listen(conn net.Conn) {
 			// slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t))
 		}
 	}
-}
-
-func (c Client) addToTree(property Property) {
-	if _, exists := c.Devices[property.Device]; !exists {
-		c.Devices[property.Device] = make(map[string][]Property)
-	}
-	if _, exists := c.Devices[property.Device][property.Group]; !exists {
-		c.Devices[property.Device][property.Group] = make([]Property, 0)
-	}
-	c.Devices[property.Device][property.Group] = append(c.Devices[property.Device][property.Group], property)
-
-	c.Properties = append(c.Properties, property)
 }

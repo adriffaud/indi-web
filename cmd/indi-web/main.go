@@ -10,14 +10,14 @@ import (
 )
 
 type application struct {
-	indiClient indiclient.Client
+	indiClient *indiclient.Client
 }
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	slog.SetDefault(logger)
 
-	app := application{}
+	app := &application{}
 
 	server := &http.Server{
 		Addr:         ":8080",
