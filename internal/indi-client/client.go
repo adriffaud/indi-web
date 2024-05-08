@@ -37,37 +37,38 @@ type Property struct {
 	Values    []Value
 }
 
-type Device map[string]map[string][]Property
-
 type Client struct {
-	conn    net.Conn
-	Devices map[string]map[string][]Property
+	conn       net.Conn
+	Devices    map[string]map[string][]Property
+	Properties []Property
 }
 
-func New(address string) (*Client, error) {
+func New(address string) (Client, error) {
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		return nil, err
+		return Client{}, err
 	}
 
-	client := &Client{
-		conn:    conn,
-		Devices: make(map[string]map[string][]Property),
+	client := Client{
+		conn:       conn,
+		Devices:    make(map[string]map[string][]Property),
+		Properties: make([]Property, 0),
 	}
+
 	go client.listen(conn)
 
 	return client, nil
 }
 
-func (c *Client) Close() {
+func (c Client) Close() {
 	c.conn.Close()
 }
 
-func (c *Client) GetProperties() error {
+func (c Client) GetProperties() error {
 	return c.sendMessage("<getProperties version=\"1.7\"/>")
 }
 
-func (c *Client) sendMessage(message string) error {
+func (c Client) sendMessage(message string) error {
 	_, err := fmt.Fprint(c.conn, message)
 	if err != nil {
 		return fmt.Errorf("failed to send message: %v", err)
@@ -76,7 +77,7 @@ func (c *Client) sendMessage(message string) error {
 	return nil
 }
 
-func (c *Client) listen(conn net.Conn) {
+func (c Client) listen(conn net.Conn) {
 	raw := xml.NewDecoder(conn)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
 
@@ -166,15 +167,15 @@ func (c *Client) listen(conn net.Conn) {
 
 				c.addToTree(property)
 			default:
-				slog.Warn("Unhandled data type", "type", se.Name.Local)
+				// slog.Warn("Unhandled data type", "type", se.Name.Local)
 			}
 		default:
-			slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t))
+			// slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t))
 		}
 	}
 }
 
-func (c *Client) addToTree(property Property) {
+func (c Client) addToTree(property Property) {
 	if _, exists := c.Devices[property.Device]; !exists {
 		c.Devices[property.Device] = make(map[string][]Property)
 	}
@@ -183,4 +184,5 @@ func (c *Client) addToTree(property Property) {
 	}
 	c.Devices[property.Device][property.Group] = append(c.Devices[property.Device][property.Group], property)
 
+	c.Properties = append(c.Properties, property)
 }

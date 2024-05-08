@@ -16,6 +16,8 @@ func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprout
 		http.Redirect(w, r, "/setup", http.StatusTemporaryRedirect)
 	}
 
+	slog.Debug("properties", "count", len(app.indiClient.Properties), "values", app.indiClient.Properties)
+
 	components.Main(indiserver.IsRunning(), app.indiClient.Devices).Render(r.Context(), w)
 }
 
@@ -79,7 +81,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 	time.Sleep(40 * time.Millisecond)
 
 	client, err := indiclient.New("localhost:7624")
-	app.indiClient = *client
+	app.indiClient = client
 	if err != nil {
 		slog.Info("could not start INDI client", "error", err)
 		return
