@@ -5,116 +5,111 @@ import "strings"
 import "github.com/adriffaud/indi-web/internal/indi-client"
 import "strconv"
 
-templ navigation() {
-	<nav>
-		<a href="/">Home</a>
-		<a href="/hardware">Hardware configuration</a>
-	</nav>
+templ navigation(active string) {
+<nav class="pure-menu pure-menu-horizontal">
+	<a href="/" class="pure-menu-heading pure-menu-link">INDI Web</a>
+	<ul class="pure-menu-list">
+		<li class={ "pure-menu-item" , templ.KV("pure-menu-selected", active=="/hardware" ) }>
+			<a href="/hardware" class="pure-menu-link">Hardware configuration</a>
+		</li>
+	</ul>
+</nav>
 }
 
-templ Main() {
-	@Root() {
-		@navigation()
-		<div></div>
-	}
+templ Main(active string) {
+@Root() {
+@navigation(active)
+<div></div>
+}
 }
 
-templ Hardware(properties indiclient.Properties) {
-	@Root() {
-		@navigation()
-		<div>
-			<table>
-				for _, device := range properties.GetDevicesSorted() {
-					<tr>
-						<th colspan="7" style="background-color: red;">{ device }</th>
-					</tr>
-					<tr style="background-color: grey;">
-						<th>Label</th>
-						<th>Name</th>
-						<th>State</th>
-						<th>Permission</th>
-						<th>Rule</th>
-						<th>Timeout</th>
-						<th>Timestamp</th>
-					</tr>
-					for _, group := range properties.GetDeviceGroupsSorted(device) {
-						<tr>
-							<th colspan="7" style="background-color: cyan;">{ group }</th>
-						</tr>
-						for _, property := range properties.GetPropertiesForDeviceGroup(device, group) {
-							<tr>
-								<td>{ property.Label }</td>
-								<td>{ property.Name }</td>
-								<td>{ property.State }</td>
-								<td>{ property.Perm }</td>
-								<td>{ property.Rule }</td>
-								<td>{ strconv.Itoa(property.Timeout) }</td>
-								<td>{ property.Timestamp }</td>
-							</tr>
-							for _, value := range property.Values {
-								<tr>
-									<td colspan="3">{ value.Label }</td>
-									<td colspan="2">{ value.Name }</td>
-									<td colspan="2"><strong>{ value.Value }</strong></td>
-								</tr>
-							}
-						}
-					}
-				}
-			</table>
-		</div>
+templ Hardware(active string, properties indiclient.Properties) {
+@Root() {
+@navigation(active)
+<div>
+	for _, device := range properties.GetDevicesSorted() {
+	<h1>{ device }</h1>
+	<table class="pure-table pure-table-bordered">
+		<tr style="background-color: grey;">
+			<th>Label</th>
+			<th>Name</th>
+			<th>State</th>
+			<th>Permission</th>
+			<th>Rule</th>
+			<th>Timeout</th>
+			<th>Timestamp</th>
+		</tr>
+		for _, group := range properties.GetDeviceGroupsSorted(device) {
+		<tr>
+			<th colspan="7" style="background-color: cyan;">{ group }</th>
+		</tr>
+		for _, property := range properties.GetPropertiesForDeviceGroup(device, group) {
+		<tr>
+			<td>{ property.Label }</td>
+			<td>{ property.Name }</td>
+			<td>{ property.State }</td>
+			<td>{ property.Perm }</td>
+			<td>{ property.Rule }</td>
+			<td>{ strconv.Itoa(property.Timeout) }</td>
+			<td>{ property.Timestamp }</td>
+		</tr>
+		for _, value := range property.Values {
+		<tr>
+			<td colspan="3">{ value.Label }</td>
+			<td colspan="2">{ value.Name }</td>
+			<td colspan="2"><strong>{ value.Value }</strong></td>
+		</tr>
+		}
+		}
+		}
+	</table>
 	}
+</div>
+}
 }
 
 templ driverSelector(group string, drivers []indiserver.Device, selection indiserver.Device) {
-	<div>
-		<label for={ strings.ToLower(group) + "_select" }>{ group }:</label>
-		<select id={ strings.ToLower(group) } name={ strings.ToLower(group) + "_select" }>
-			<option value=""></option>
-			for _, driver := range drivers {
-				<option
-					value={ driver.DriverName }
-					if selection.DriverName==driver.DriverName &&
-			selection.Manufacturer==driver.Manufacturer {
-						selected
-					}
-				>
-					{ driver.Manufacturer } - { driver.Name }
-				</option>
-			}
-		</select>
-	</div>
+<div class="pure-control-group">
+	<label for={ strings.ToLower(group) + "_select" }>{ group }:</label>
+	<select id={ strings.ToLower(group) } name={ strings.ToLower(group) + "_select" }>
+		<option value=""></option>
+		for _, driver := range drivers {
+		<option value={ driver.DriverName } if selection.DriverName==driver.DriverName &&
+			selection.Manufacturer==driver.Manufacturer { selected }>
+			{ driver.Manufacturer } - { driver.Name }
+		</option>
+		}
+	</select>
+</div>
 }
 
 templ input(id, value string) {
-	<input id={ id } value={ value }/>
+<input id={ id } value={ value } />
 }
 
 templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver.Device) {
-	@Root() {
-		<form method="post">
-			<div>
-				<div>
-					<div>
-						<label for="date-time">Date/Time</label>
-						@input("date-time", "2023-11-01 20:45")
-					</div>
-					<div>
-						<label for="latitude">Latitude</label>
-						@input("latitude", "N 47º 14' 25\"")
-					</div>
-					<div>
-						<label for="longitude">Longitude</label>
-						@input("longitude", "E 05º 55' 57\"")
-					</div>
-				</div>
-				<div>
-					@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
-					@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
-					@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
-					<input id="indi_server" type="submit" value="Start"/>
-				</div>
-			</div>
-		</form>
-	}
+@Root() {
+<form method="post" class="pure-form pure-form-aligned">
+	<fieldset>
+		<div class="pure-control-group">
+			<label for="date-time">Date/Time</label>
+			@input("date-time", "2023-11-01 20:45")
+		</div>
+		<div class="pure-control-group">
+			<label for="latitude">Latitude</label>
+			@input("latitude", "N 47º 14' 25\"")
+		</div>
+		<div class="pure-control-group">
+			<label for="longitude">Longitude</label>
+			@input("longitude", "E 05º 55' 57\"")
+		</div>
+		@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
+		@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
+		@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
+		<div class="pure-controls">
+			<button id="indi_server" type="submit" class="pure-button pure-button-primary">Start</button>
+		</div>
+	</fieldset>
+</form>
+}
 }
