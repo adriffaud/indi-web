@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"slices"
 	"strconv"
 )
 
@@ -88,7 +89,7 @@ func (c *Client) listen(conn net.Conn) {
 				}
 				property.Values = values
 
-				c.Properties = append(c.Properties, property)
+				c.addToProperties(property)
 			case "defSwitchVector":
 				var defSwitchVector DefSwitchVector
 				decoder.DecodeElement(&defSwitchVector, &se)
@@ -112,7 +113,7 @@ func (c *Client) listen(conn net.Conn) {
 				}
 				property.Values = values
 
-				c.Properties = append(c.Properties, property)
+				c.addToProperties(property)
 			case "defTextVector":
 				var defTextVector DefTextVector
 				decoder.DecodeElement(&defTextVector, &se)
@@ -135,12 +136,22 @@ func (c *Client) listen(conn net.Conn) {
 				}
 				property.Values = values
 
-				c.Properties = append(c.Properties, property)
+				c.addToProperties(property)
 			default:
 				// slog.Warn("Unhandled data type", "type", se.Name.Local)
 			}
 		default:
 			// slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t))
 		}
+	}
+}
+
+func (c *Client) addToProperties(property Property) {
+	var containsFunc = func(p Property) bool {
+		return p.Device == property.Device && p.Group == property.Group && p.Name == property.Name
+	}
+
+	if !slices.ContainsFunc(c.Properties, containsFunc) {
+		c.Properties = append(c.Properties, property)
 	}
 }
