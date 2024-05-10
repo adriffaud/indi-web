@@ -6,7 +6,6 @@ import (
 	"io"
 	"log/slog"
 	"net"
-	"slices"
 	"strconv"
 )
 
@@ -147,11 +146,12 @@ func (c *Client) listen(conn net.Conn) {
 }
 
 func (c *Client) addToProperties(property Property) {
-	var containsFunc = func(p Property) bool {
-		return p.Device == property.Device && p.Group == property.Group && p.Name == property.Name
+	for i := 0; i < len(c.Properties); i++ {
+		// Remove existing property if already existing to replace with new one.
+		if c.Properties[i].Device == property.Device && c.Properties[i].Group == property.Group && c.Properties[i].Name == property.Name {
+			c.Properties = append(c.Properties[:i], c.Properties[i+1:]...)
+		}
 	}
 
-	if !slices.ContainsFunc(c.Properties, containsFunc) {
-		c.Properties = append(c.Properties, property)
-	}
+	c.Properties = append(c.Properties, property)
 }
