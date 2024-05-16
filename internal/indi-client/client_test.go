@@ -10,7 +10,7 @@ import (
 func TestDefProperty(t *testing.T) {
 	client := &Client{Properties: make([]Property, 0)}
 
-	defNumberVector := `
+	elements := `
 	<defNumberVector device="Telescope Simulator" name="MOUNT_AXES" label="Mount Axes" group="Simulation" state="Idle" perm="ro" timeout="0" timestamp="2024-05-16T12:21:52">
 		<defNumber name="PRIMARY" label="Primary (Ha)" format="%g" min="-180" max="180" step="0.010000000000000000208">
 		0
@@ -18,11 +18,26 @@ func TestDefProperty(t *testing.T) {
 		<defNumber name="SECONDARY" label="Secondary (Dec)" format="%g" min="-180" max="180" step="0.010000000000000000208">
 		0
 		</defNumber>
-	</defNumberVector>`
-	defNumberReader := strings.NewReader(defNumberVector)
-	client.listen(defNumberReader)
+	</defNumberVector>
+	<defSwitchVector device="Telescope Simulator" name="SIM_PIER_SIDE" label="Sim Pier Side" group="Simulation" state="Idle" perm="wo" rule="OneOfMany" timeout="60" timestamp="2024-05-16T12:21:52">
+	    <defSwitch name="PS_OFF" label="Off">
+	Off
+	    </defSwitch>
+	    <defSwitch name="PS_ON" label="On">
+	On
+	    </defSwitch>
+	</defSwitchVector>
 
-	expected := Property{
+	<defTextVector device="Telescope Simulator" name="ACTIVE_DEVICES" label="Snoop devices" group="Options" state="Idle" perm="rw" timeout="60" timestamp="2024-05-16T12:21:52">
+	    <defText name="ACTIVE_GPS" label="GPS">
+	GPS Simulator
+	    </defText>
+	</defTextVector>
+	`
+	elementsReader := strings.NewReader(elements)
+	client.listen(elementsReader)
+
+	numberProp := Property{
 		Device:    "Telescope Simulator",
 		Group:     "Simulation",
 		Type:      Number,
@@ -36,29 +51,143 @@ func TestDefProperty(t *testing.T) {
 		Values:    []Value{{Name: "PRIMARY", Label: "Primary (Ha)", Value: "0"}, {Name: "SECONDARY", Label: "Secondary (Dec)", Value: "0"}},
 	}
 
-	assert.Equal(t, 1, len(client.Properties))
-	assert.Equal(t, expected, client.Properties[0])
+	switchProp := Property{
+		Device:    "Telescope Simulator",
+		Group:     "Simulation",
+		Type:      Switch,
+		Name:      "SIM_PIER_SIDE",
+		Label:     "Sim Pier Side",
+		State:     "Idle",
+		Perm:      "wo",
+		Timeout:   60,
+		Timestamp: "2024-05-16T12:21:52",
+		Rule:      "OneOfMany",
+		Values:    []Value{{Name: "PS_OFF", Label: "Off", Value: "Off"}, {Name: "PS_ON", Label: "On", Value: "On"}},
+	}
+
+	textProp := Property{
+		Device:    "Telescope Simulator",
+		Group:     "Options",
+		Type:      Text,
+		Name:      "ACTIVE_DEVICES",
+		Label:     "Snoop devices",
+		State:     "Idle",
+		Perm:      "rw",
+		Timeout:   60,
+		Timestamp: "2024-05-16T12:21:52",
+		Rule:      "",
+		Values:    []Value{{Name: "ACTIVE_GPS", Label: "GPS", Value: "GPS Simulator"}},
+	}
+
+	expected := []Property{numberProp, switchProp, textProp}
+
+	assert.Equal(t, 3, len(client.Properties))
+	assert.ElementsMatch(t, expected, client.Properties)
 }
 
-// <defSwitchVector device="Telescope Simulator" name="SIM_PIER_SIDE" label="Sim Pier Side" group="Simulation" state="Idle" perm="wo" rule="OneOfMany" timeout="60" timestamp="2024-05-16T12:21:52">
-//     <defSwitch name="PS_OFF" label="Off">
-// Off
-//     </defSwitch>
-//     <defSwitch name="PS_ON" label="On">
-// On
-//     </defSwitch>
-// </defSwitchVector>
+func TestUpdateProperty(t *testing.T) {
+	numberProp := Property{
+		Device:    "Telescope Simulator",
+		Group:     "Simulation",
+		Type:      Number,
+		Name:      "MOUNT_AXES",
+		Label:     "Mount Axes",
+		State:     "Idle",
+		Perm:      "ro",
+		Timeout:   0,
+		Timestamp: "2024-05-16T12:21:52",
+		Rule:      "",
+		Values:    []Value{{Name: "PRIMARY", Label: "Primary (Ha)", Value: "0"}, {Name: "SECONDARY", Label: "Secondary (Dec)", Value: "0"}},
+	}
 
-// <defTextVector device="Telescope Simulator" name="ACTIVE_DEVICES" label="Snoop devices" group="Options" state="Idle" perm="rw" timeout="60" timestamp="2024-05-16T12:21:52">
-//     <defText name="ACTIVE_GPS" label="GPS">
-// GPS Simulator
-//     </defText>
-//     <defText name="ACTIVE_DOME" label="DOME">
-// Dome Simulator
-//     </defText>
-// </defTextVector>
+	switchProp := Property{
+		Device:    "Telescope Simulator",
+		Group:     "Simulation",
+		Type:      Switch,
+		Name:      "SIM_PIER_SIDE",
+		Label:     "Sim Pier Side",
+		State:     "Idle",
+		Perm:      "wo",
+		Timeout:   60,
+		Timestamp: "2024-05-16T12:21:52",
+		Rule:      "OneOfMany",
+		Values:    []Value{{Name: "PS_OFF", Label: "Off", Value: "Off"}, {Name: "PS_ON", Label: "On", Value: "On"}},
+	}
 
-// <delProperty device="Telescope Simulator" name="TELESCOPE_PIER_SIDE" timestamp="2024-05-16T12:47:39"/>
+	textProp := Property{
+		Device:    "Telescope Simulator",
+		Group:     "Options",
+		Type:      Text,
+		Name:      "ACTIVE_DEVICES",
+		Label:     "Snoop devices",
+		State:     "Idle",
+		Perm:      "rw",
+		Timeout:   60,
+		Timestamp: "2024-05-16T12:21:52",
+		Rule:      "",
+		Values:    []Value{{Name: "ACTIVE_GPS", Label: "GPS", Value: "GPS Simulator"}},
+	}
+
+	properties := []Property{numberProp, switchProp, textProp}
+	client := &Client{Properties: properties}
+
+	elements := `
+	<defNumberVector device="Telescope Simulator" name="MOUNT_AXES" label="Mount Axes" group="Simulation" state="Idle" perm="ro" timeout="0" timestamp="2025-05-16T12:21:52">
+		<defNumber name="PRIMARY" label="Primary (Ha)" format="%g" min="-180" max="180" step="0.010000000000000000208">
+		0
+		</defNumber>
+		<defNumber name="SECONDARY" label="Secondary (Dec)" format="%g" min="-180" max="180" step="0.010000000000000000208">
+		0
+		</defNumber>
+	</defNumberVector>
+	<defSwitchVector device="Telescope Simulator" name="SIM_PIER_SIDE" label="Sim Pier Side" group="Simulation" state="Idle" perm="wo" rule="OneOfMany" timeout="60" timestamp="2024-05-16T12:21:52">
+	    <defSwitch name="PS_OFF" label="Off">
+	Off
+	    </defSwitch>
+	    <defSwitch name="PS_ON" label="On">
+	On
+	    </defSwitch>
+	</defSwitchVector>
+
+	<defTextVector device="Telescope Simulator" name="ACTIVE_DEVICES" label="Snoop devices" group="Options" state="Idle" perm="rw" timeout="60" timestamp="2024-05-16T12:21:52">
+	    <defText name="ACTIVE_GPS" label="GPS">
+	GPS Simulator
+	    </defText>
+	</defTextVector>
+	`
+	elementsReader := strings.NewReader(elements)
+	client.listen(elementsReader)
+
+	assert.Equal(t, 3, len(client.Properties))
+	assert.ElementsMatch(t, properties, client.Properties)
+}
+
+func TestDelProperty(t *testing.T) {
+	switchProp := Property{
+		Device:    "Telescope Simulator",
+		Group:     "Simulation",
+		Type:      Switch,
+		Name:      "TELESCOPE_PIER_SIDE",
+		Label:     "Telescope Pier Side",
+		State:     "Idle",
+		Perm:      "wo",
+		Timeout:   60,
+		Timestamp: "2024-05-16T12:21:52",
+		Rule:      "OneOfMany",
+		Values:    []Value{{Name: "PS_OFF", Label: "Off", Value: "Off"}, {Name: "PS_ON", Label: "On", Value: "On"}},
+	}
+
+	properties := []Property{switchProp}
+	client := &Client{Properties: properties}
+
+	elements := `
+	<delProperty device="Telescope Simulator" name="TELESCOPE_PIER_SIDE" timestamp="2024-05-16T12:47:39"/>
+	`
+	elementsReader := strings.NewReader(elements)
+	client.listen(elementsReader)
+
+	assert.Equal(t, 0, len(client.Properties))
+}
 
 // <setNumberVector device="Telescope Simulator" name="EQUATORIAL_EOD_COORD" state="Idle" timeout="60" timestamp="2024-05-16T12:48:10">
 //     <oneNumber name="RA">
