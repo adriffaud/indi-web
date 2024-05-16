@@ -47,8 +47,8 @@ func (c *Client) sendMessage(message string) error {
 	return nil
 }
 
-func (c *Client) listen(conn net.Conn) {
-	raw := xml.NewDecoder(conn)
+func (c *Client) listen(reader io.Reader) {
+	raw := xml.NewDecoder(reader)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
 
 	for {
@@ -58,7 +58,6 @@ func (c *Client) listen(conn net.Conn) {
 				continue
 			}
 			if err == io.EOF {
-				slog.Info("EOF")
 				break
 			}
 		}
