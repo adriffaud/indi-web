@@ -7,9 +7,11 @@ public class IndiClientApplication {
         try {
             var indiClient = new IndiClient();
             indiClient.start("localhost", 7624);
-
+            indiClient.getProperties();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        while (true) {}
     }
 }
