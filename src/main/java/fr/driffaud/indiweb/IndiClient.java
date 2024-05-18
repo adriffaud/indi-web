@@ -1,9 +1,9 @@
 package fr.driffaud.indiweb;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.StartElement;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,32 +28,63 @@ public class IndiClient {
 
     protected void listen(BufferedReader in) {
         var xmlInputFactory = XMLInputFactory.newInstance();
+        xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+
         try {
             var reader = xmlInputFactory.createXMLEventReader(in);
+            Property property = null;
 
-            while (true) {
+            while (reader.hasNext()) {
                 var event = reader.nextEvent();
 
                 if (event.isStartElement()) {
-                    StartElement startElement = event.asStartElement();
-                    System.out.println("Element: " + startElement.getName().getLocalPart());
+                    var element = event.asStartElement();
+                    switch (element.getName().getLocalPart()) {
+                        case "defNumberVector":
+                        case "defSwitchVector":
+                        case "defTextVector":
+                            property = new Property();
+                            property.device = element.getAttributeByName(new QName("device")).getValue();
+                            property.group = element.getAttributeByName(new QName("group")).getValue();
+                            property.name = element.getAttributeByName(new QName("name")).getValue();
+                            property.label = element.getAttributeByName(new QName("label")).getValue();
+                            property.state = element.getAttributeByName(new QName("state")).getValue();
+                            property.perm = element.getAttributeByName(new QName("perm")).getValue();
+                            property.type = switch (element.getName().getLocalPart()) {
+                                case "defNumberVector" -> PropertyType.NUMBER;
+                                case "defSwitchVector" -> PropertyType.SWITCH;
+                                case "defTextVector" -> PropertyType.TEXT;
+                                default -> PropertyType.UNKNOWN;
+                            };
 
-                    var device = startElement.getAttributeByName(new QName("device"));
-                    var group = startElement.getAttributeByName(new QName("group"));
-                    var name = startElement.getAttributeByName(new QName("name"));
-                    var label = startElement.getAttributeByName(new QName("label"));
-                    var state = startElement.getAttributeByName(new QName("state"));
-                    var perm = startElement.getAttributeByName(new QName("perm"));
-                    var type = switch (startElement.getName().getLocalPart()) {
-                        case "defNumberVector" -> PropertyType.NUMBER;
-                        case "defSwitchVector" -> PropertyType.SWITCH;
-                        case "defTextVector" -> PropertyType.TEXT;
-                        default -> PropertyType.UNKNOWN;
-                    };
+                            break;
+                        case "defNumber":
+                        case "defSwitch":
+                        case "defText":
+                            var name = element.getAttributeByName(new QName("name")).getValue();
+                            var label = element.getAttributeByName(new QName("label")).getValue();
 
-                    var property = new Property(device.getValue(), group.getValue(), type,
-                            name.getValue(), label.getValue(), state.getValue(), perm.getValue());
-                    properties.add(property);
+                            event = reader.nextEvent();
+                            var value = event.asCharacters().getData().trim();
+
+                            if (property != null) {
+                                property.values.add(new Value(name, label, value));
+                            }
+                            break;
+                        default:
+                            System.out.println("Unhandled element: " + element.getName().getLocalPart());
+                    }
+                    System.out.println(property);
+                } else if (event.isEndElement()) {
+                    var element = event.asEndElement();
+                    switch (element.getName().getLocalPart()) {
+                        case "defNumberVector":
+                        case "defSwitchVector":
+                        case "defTextVector":
+                            properties.add(property);
+                            break;
+                    }
                 }
             }
         } catch (XMLStreamException e) {
