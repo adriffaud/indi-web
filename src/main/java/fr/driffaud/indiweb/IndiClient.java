@@ -1,8 +1,9 @@
 package fr.driffaud.indiweb;
 
-import javax.xml.XMLConstants;
+import com.ctc.wstx.api.WstxInputProperties;
+import com.ctc.wstx.stax.WstxInputFactory;
+
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,9 +28,9 @@ public class IndiClient {
     }
 
     protected void listen(BufferedReader in) {
-        var xmlInputFactory = XMLInputFactory.newInstance();
-        xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-        xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        var xmlInputFactory = WstxInputFactory.newInstance();
+        // Crucial to allow multiple root elements
+        xmlInputFactory.setProperty(WstxInputProperties.P_INPUT_PARSING_MODE, WstxInputProperties.PARSING_MODE_FRAGMENT);
 
         try {
             var reader = xmlInputFactory.createXMLEventReader(in);

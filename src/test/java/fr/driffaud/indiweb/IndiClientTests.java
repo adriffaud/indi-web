@@ -75,7 +75,7 @@ public class IndiClientTests {
                         PropertyType.SWITCH, "SIM_PIER_SIDE", "Sim Pier Side", "Idle", "wo",
                         List.of(new Value("PS_OFF", "Off", "Off"), new Value("PS_ON", "On", "On"))),
                 new Property("Telescope Simulator", "Options",
-                        PropertyType.SWITCH, "ACTIVE_DEVICES", "Snoop devices", "Idle", "rw",
+                        PropertyType.TEXT, "ACTIVE_DEVICES", "Snoop devices", "Idle", "rw",
                         List.of(new Value("ACTIVE_GPS", "GPS", "GPS Simulator"))));
 
         System.out.println(client.properties);
