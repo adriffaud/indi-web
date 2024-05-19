@@ -193,11 +193,36 @@ func TestDelProperty(t *testing.T) {
 	assert.Equal(t, 0, len(client.Properties))
 }
 
-// <setNumberVector device="Telescope Simulator" name="EQUATORIAL_EOD_COORD" state="Idle" timeout="60" timestamp="2024-05-16T12:48:10">
-//     <oneNumber name="RA">
-// 22.451127260193981527
-//     </oneNumber>
-//     <oneNumber name="DEC">
-// 90
-//     </oneNumber>
-// </setNumberVector>
+func TestSetPropertyValues(t *testing.T) {
+	numberProp := Property{
+		Device: "Telescope Simulator",
+		Name:   "EQUATORIAL_EOD_COORD",
+		State:  "Idle",
+		Values: []Value{{Name: "RA", Label: "Ra", Value: "0"}, {Name: "DEC", Label: "Dec", Value: "0"}},
+	}
+
+	properties := []Property{numberProp}
+	client := &Client{Properties: properties}
+
+	elements := `
+	<setNumberVector device="Telescope Simulator" name="EQUATORIAL_EOD_COORD" state="Idle" timeout="60" timestamp="2024-05-16T12:48:10">
+		<oneNumber name="RA">
+			22.451127260193981527
+		</oneNumber>
+		<oneNumber name="DEC">
+			90
+		</oneNumber>
+	</setNumberVector>
+	`
+	elementsReader := strings.NewReader(elements)
+	client.listen(elementsReader)
+
+	expected := Property{
+		Device: "Telescope Simulator",
+		Name:   "EQUATORIAL_EOD_COORD",
+		State:  "Idle",
+		Values: []Value{{Name: "RA", Label: "Ra", Value: "22.451127260193981527"}, {Name: "DEC", Label: "Dec", Value: "90"}},
+	}
+	assert.Equal(t, 1, len(client.Properties))
+	assert.Equal(t, expected, client.Properties[0])
+}
