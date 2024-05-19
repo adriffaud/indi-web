@@ -35,11 +35,11 @@ templ Main(active string) {
 templ Hardware(active string, properties indiclient.Properties) {
 @Root() {
 @navigation(active)
-<div>
+<div class="container">
 	for _, device := range properties.GetDevicesSorted() {
 	<h1>{ device }</h1>
-	<table class="pure-table pure-table-bordered">
-		<tr style="background-color: grey;">
+	<table class="table table-bordered table-striped">
+		<tr>
 			<th>Label</th>
 			<th>Name</th>
 			<th>State</th>
@@ -50,7 +50,7 @@ templ Hardware(active string, properties indiclient.Properties) {
 		</tr>
 		for _, group := range properties.GetDeviceGroupsSorted(device) {
 		<tr>
-			<th colspan="7" style="background-color: cyan;">{ group }</th>
+			<th colspan="7" class="table-primary">{ group }</th>
 		</tr>
 		for _, property := range properties.GetPropertiesForDeviceGroup(device, group) {
 		<tr>
