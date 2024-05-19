@@ -57,3 +57,9 @@ type DefNumberVector struct {
 	DefNumber []DefNumber `xml:"defNumber"`
 	VectorAttrs
 }
+
+type DelProperty struct {
+	XMLName xml.Name `xml:"delProperty"`
+	Device  string   `xml:"device,attr"`
+	Name    string   `xml:"name,attr"`
+}

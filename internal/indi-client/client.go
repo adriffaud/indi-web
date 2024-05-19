@@ -135,6 +135,10 @@ func (c *Client) listen(reader io.Reader) {
 				property.Values = values
 
 				c.addToProperties(property)
+			case "delProperty":
+				var delProperty DelProperty
+				decoder.DecodeElement(&delProperty, &se)
+				c.delFromProperties(delProperty.Device, delProperty.Name)
 			default:
 				// slog.Warn("Unhandled data type", "type", se.Name.Local)
 			}
@@ -145,12 +149,14 @@ func (c *Client) listen(reader io.Reader) {
 }
 
 func (c *Client) addToProperties(property Property) {
+	c.delFromProperties(property.Device, property.Name)
+	c.Properties = append(c.Properties, property)
+}
+
+func (c *Client) delFromProperties(device, name string) {
 	for i := 0; i < len(c.Properties); i++ {
-		// Remove existing property if already existing to replace with new one.
-		if c.Properties[i].Device == property.Device && c.Properties[i].Group == property.Group && c.Properties[i].Name == property.Name {
+		if c.Properties[i].Device == device && c.Properties[i].Name == name {
 			c.Properties = append(c.Properties[:i], c.Properties[i+1:]...)
 		}
 	}
-
-	c.Properties = append(c.Properties, property)
 }
