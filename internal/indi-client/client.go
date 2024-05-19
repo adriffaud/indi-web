@@ -104,10 +104,7 @@ func (c *Client) listen(reader io.Reader) {
 					Label: attrs["label"],
 				}
 			case "delProperty":
-				var delProperty DelProperty
-				decoder.DecodeElement(&delProperty, &se)
-				c.delFromProperties(delProperty.Device, delProperty.Name)
-				continue
+				c.delFromProperties(attrs["device"], attrs["name"])
 			case "setNumberVector":
 				property = Property{
 					Device: attrs["device"],
@@ -131,7 +128,7 @@ func (c *Client) listen(reader io.Reader) {
 			case "defNumber", "defSwitch", "defText", "oneNumber":
 				property.Values = append(property.Values, value)
 			case "setNumberVector":
-				c.updateProperty(property)
+				c.updatePropertyValues(property)
 			}
 			// default:
 			// 	slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t), "value", se)
@@ -152,7 +149,7 @@ func (c *Client) delFromProperties(device, name string) {
 	}
 }
 
-func (c *Client) updateProperty(property Property) {
+func (c *Client) updatePropertyValues(property Property) {
 	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == property.Device && p.Name == property.Name })
 	if propIdx == -1 {
 		panic("trying to update unexisting property")
