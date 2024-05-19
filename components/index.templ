@@ -5,7 +5,13 @@ import "strings"
 import "github.com/adriffaud/indi-web/internal/indi-client"
 import "strconv"
 
-templ navigation(_ string) {
+templ navItem(path, name, active string) {
+<li class="nav-item">
+	<a href={ templ.URL(path) } class={ "nav-link" , templ.KV("active", active=="/hardware" ) }>{ name }</a>
+</li>
+}
+
+templ navigation(active string) {
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
 	<div class="container-fluid">
 		<a href="/" class="navbar-brand">INDI Web</a>
@@ -16,9 +22,7 @@ templ navigation(_ string) {
 		</button>
 		<div class="collapse navbar-collapse" id="navbarSupportedContent">
 			<ul class="navbar-nav me-auto">
-				<li class="nav-item">
-					<a href="/hardware" class="nav-link">Hardware configuration</a>
-				</li>
+				@navItem("/hardware", "Hardware configuration", active)
 			</ul>
 		</div>
 	</div>
