@@ -129,7 +129,9 @@ func TestUpdateProperty(t *testing.T) {
 	}
 
 	properties := []Property{numberProp, switchProp, textProp}
-	client := &Client{Properties: properties}
+	cpy := make([]Property, 3)
+	copy(cpy, properties)
+	client := &Client{Properties: cpy}
 
 	elements := `
 	<defNumberVector device="Telescope Simulator" name="MOUNT_AXES" label="Mount Axes" group="Simulation" state="Idle" perm="ro" timeout="0" timestamp="2025-05-16T12:21:52">
@@ -158,8 +160,10 @@ func TestUpdateProperty(t *testing.T) {
 	elementsReader := strings.NewReader(elements)
 	client.listen(elementsReader)
 
+	numberProp.Timestamp = "2025-05-16T12:21:52"
+	expected := []Property{numberProp, switchProp, textProp}
 	assert.Equal(t, 3, len(client.Properties))
-	assert.ElementsMatch(t, properties, client.Properties)
+	assert.ElementsMatch(t, expected, client.Properties)
 }
 
 func TestDelProperty(t *testing.T) {
