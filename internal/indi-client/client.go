@@ -107,8 +107,10 @@ func (c *Client) listen(reader io.Reader) {
 				c.delFromProperties(attrs["device"], attrs["name"])
 			case "setNumberVector":
 				property = Property{
-					Device: attrs["device"],
-					Name:   attrs["name"],
+					Device:    attrs["device"],
+					Name:      attrs["name"],
+					State:     attrs["state"],
+					Timestamp: attrs["timestamp"],
 				}
 			case "oneNumber":
 				attrs := make(map[string]string)
@@ -155,7 +157,9 @@ func (c *Client) updatePropertyValues(property Property) {
 		panic("trying to update unexisting property")
 	}
 
-	prop := c.Properties[propIdx]
+	prop := &c.Properties[propIdx]
+	prop.State = property.State
+	prop.Timestamp = property.Timestamp
 
 	for _, newValue := range property.Values {
 		valueIdx := slices.IndexFunc(prop.Values, func(v Value) bool { return v.Name == newValue.Name })

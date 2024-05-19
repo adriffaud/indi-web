@@ -195,10 +195,11 @@ func TestDelProperty(t *testing.T) {
 
 func TestSetPropertyValues(t *testing.T) {
 	numberProp := Property{
-		Device: "Telescope Simulator",
-		Name:   "EQUATORIAL_EOD_COORD",
-		State:  "Idle",
-		Values: []Value{{Name: "RA", Value: "0"}, {Name: "DEC", Value: "0"}},
+		Device:    "Telescope Simulator",
+		Name:      "EQUATORIAL_EOD_COORD",
+		State:     "Idle",
+		Timestamp: "2024-05-16T12:40:10",
+		Values:    []Value{{Name: "RA", Value: "0"}, {Name: "DEC", Value: "0"}},
 	}
 
 	properties := []Property{numberProp}
@@ -218,10 +219,11 @@ func TestSetPropertyValues(t *testing.T) {
 	client.listen(elementsReader)
 
 	expected := Property{
-		Device: "Telescope Simulator",
-		Name:   "EQUATORIAL_EOD_COORD",
-		State:  "Idle",
-		Values: []Value{{Name: "RA", Value: "22.451127260193981527"}, {Name: "DEC", Value: "90"}},
+		Device:    "Telescope Simulator",
+		Name:      "EQUATORIAL_EOD_COORD",
+		State:     "Idle",
+		Timestamp: "2024-05-16T12:48:10",
+		Values:    []Value{{Name: "RA", Value: "22.451127260193981527"}, {Name: "DEC", Value: "90"}},
 	}
 	assert.Equal(t, 1, len(client.Properties))
 	assert.Equal(t, expected, client.Properties[0])
@@ -242,8 +244,5 @@ func TestSetUnexistingPropertyValues(t *testing.T) {
 	`
 	elementsReader := strings.NewReader(elements)
 
-	assert.Panics(t, func() {
-		client.listen(elementsReader)
-	})
-
+	assert.Panics(t, func() { client.listen(elementsReader) })
 }
