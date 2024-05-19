@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"slices"
 	"strconv"
 )
 
@@ -51,6 +52,9 @@ func (c *Client) listen(reader io.Reader) {
 	raw := xml.NewDecoder(reader)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
 
+	var property Property
+	var value Value
+
 	for {
 		t, err := decoder.Token()
 		if t == nil {
@@ -64,87 +68,75 @@ func (c *Client) listen(reader io.Reader) {
 
 		switch se := t.(type) {
 		case xml.StartElement:
+			attrs := make(map[string]string)
+			for _, attr := range se.Attr {
+				attrs[attr.Name.Local] = attr.Value
+			}
+
 			switch se.Name.Local {
-			case "defNumberVector":
-				var defNumberVector DefNumberVector
-				decoder.DecodeElement(&defNumberVector, &se)
-
-				property := Property{
-					Device:    defNumberVector.Device,
-					Group:     defNumberVector.Group,
-					Type:      Number,
-					Name:      defNumberVector.Name,
-					Label:     defNumberVector.Label,
-					State:     defNumberVector.State,
-					Perm:      defNumberVector.Perm,
-					Timeout:   defNumberVector.Timeout,
-					Timestamp: defNumberVector.Timestamp,
+			case "defNumberVector", "defSwitchVector", "defTextVector":
+				property = Property{
+					Device:    attrs["device"],
+					Group:     attrs["group"],
+					Name:      attrs["name"],
+					Label:     attrs["label"],
+					State:     attrs["state"],
+					Perm:      attrs["perm"],
+					Timestamp: attrs["timestamp"],
+					Rule:      attrs["rule"],
 				}
 
-				values := make([]Value, 0)
-				for _, number := range defNumberVector.DefNumber {
-					values = append(values, Value{Name: number.Name, Label: number.Label, Value: strconv.Itoa(number.Value)})
-				}
-				property.Values = values
-
-				c.addToProperties(property)
-			case "defSwitchVector":
-				var defSwitchVector DefSwitchVector
-				decoder.DecodeElement(&defSwitchVector, &se)
-
-				property := Property{
-					Device:    defSwitchVector.Device,
-					Group:     defSwitchVector.Group,
-					Type:      Switch,
-					Name:      defSwitchVector.Name,
-					Label:     defSwitchVector.Label,
-					State:     defSwitchVector.State,
-					Perm:      defSwitchVector.Perm,
-					Timeout:   defSwitchVector.Timeout,
-					Timestamp: defSwitchVector.Timestamp,
-					Rule:      defSwitchVector.Rule,
+				switch se.Name.Local {
+				case "defNumberVector":
+					property.Type = Number
+				case "defSwitchVector":
+					property.Type = Switch
+				case "defTextVector":
+					property.Type = Text
 				}
 
-				values := make([]Value, 0)
-				for _, item := range defSwitchVector.DefSwitch {
-					values = append(values, Value{Name: item.Name, Label: item.Label, Value: item.Value})
+				if timeout, err := strconv.Atoi(attrs["timeout"]); err == nil {
+					property.Timeout = timeout
 				}
-				property.Values = values
-
-				c.addToProperties(property)
-			case "defTextVector":
-				var defTextVector DefTextVector
-				decoder.DecodeElement(&defTextVector, &se)
-
-				property := Property{
-					Device:    defTextVector.Device,
-					Group:     defTextVector.Group,
-					Type:      Text,
-					Name:      defTextVector.Name,
-					Label:     defTextVector.Label,
-					State:     defTextVector.State,
-					Perm:      defTextVector.Perm,
-					Timeout:   defTextVector.Timeout,
-					Timestamp: defTextVector.Timestamp,
+			case "defNumber", "defSwitch", "defText":
+				value = Value{
+					Name:  attrs["name"],
+					Label: attrs["label"],
 				}
-
-				values := make([]Value, 0)
-				for _, text := range defTextVector.DefText {
-					values = append(values, Value{Name: text.Name, Label: text.Label, Value: text.Value})
-				}
-				property.Values = values
-
-				c.addToProperties(property)
 			case "delProperty":
 				var delProperty DelProperty
 				decoder.DecodeElement(&delProperty, &se)
 				c.delFromProperties(delProperty.Device, delProperty.Name)
+				continue
+			case "setNumberVector":
+				property = Property{
+					Device: attrs["device"],
+					Name:   attrs["name"],
+				}
+			case "oneNumber":
+				attrs := make(map[string]string)
+				for _, attr := range se.Attr {
+					attrs[attr.Name.Local] = attr.Value
+				}
+				value = Value{Name: attrs["name"]}
 			default:
-				// slog.Warn("Unhandled data type", "type", se.Name.Local)
+				slog.Warn("Unhandled data type", "type", se.Name.Local)
 			}
-		default:
-			// slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t))
+		case xml.CharData:
+			value.Value = string(se)
+		case xml.EndElement:
+			switch se.Name.Local {
+			case "defNumberVector", "defSwitchVector", "defTextVector":
+				c.addToProperties(property)
+			case "defNumber", "defSwitch", "defText", "oneNumber":
+				property.Values = append(property.Values, value)
+			case "setNumberVector":
+				c.updateProperty(property)
+			}
+			// default:
+			// 	slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t), "value", se)
 		}
+
 	}
 }
 
@@ -154,9 +146,23 @@ func (c *Client) addToProperties(property Property) {
 }
 
 func (c *Client) delFromProperties(device, name string) {
-	for i := 0; i < len(c.Properties); i++ {
-		if c.Properties[i].Device == device && c.Properties[i].Name == name {
-			c.Properties = append(c.Properties[:i], c.Properties[i+1:]...)
-		}
+	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == device && p.Name == name })
+	if propIdx >= 0 {
+		c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)
+	}
+}
+
+func (c *Client) updateProperty(property Property) {
+	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == property.Device && p.Name == property.Name })
+	if propIdx == -1 {
+		panic("trying to update unexisting property")
+	}
+
+	prop := c.Properties[propIdx]
+
+	for _, newValue := range property.Values {
+		valueIdx := slices.IndexFunc(prop.Values, func(v Value) bool { return v.Name == newValue.Name })
+		prop.Values = append(prop.Values[:valueIdx], prop.Values[valueIdx+1:]...)
+		prop.Values = append(prop.Values, newValue)
 	}
 }
