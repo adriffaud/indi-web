@@ -52,6 +52,8 @@ public class IndiClient {
                             property.label = element.getAttributeByName(new QName("label")).getValue();
                             property.state = element.getAttributeByName(new QName("state")).getValue();
                             property.perm = element.getAttributeByName(new QName("perm")).getValue();
+                            property.timeout = element.getAttributeByName(new QName("timeout")).getValue();
+                            property.timestamp = element.getAttributeByName(new QName("timestamp")).getValue();
                             property.type = switch (element.getName().getLocalPart()) {
                                 case "defNumberVector" -> PropertyType.NUMBER;
                                 case "defSwitchVector" -> PropertyType.SWITCH;
@@ -76,7 +78,6 @@ public class IndiClient {
                         default:
                             System.out.println("Unhandled element: " + element.getName().getLocalPart());
                     }
-                    System.out.println(property);
                 } else if (event.isEndElement()) {
                     var element = event.asEndElement();
                     switch (element.getName().getLocalPart()) {

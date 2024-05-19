@@ -12,6 +12,10 @@ public class IndiClientTests {
 
     @Test
     void TestDefOneProperty() {
+        var expected = List.of(new Property("Telescope Simulator", "Simulation",
+                PropertyType.NUMBER, "MOUNT_AXES", "Mount Axes", "Idle", "ro", "0", "2024-05-16T12:21:52",
+                List.of(new Value("PRIMARY", "Primary (Ha)", "0"), new Value("SECONDARY", "Secondary (Dec)", "0"))));
+
         var element = """
                 <defNumberVector device="Telescope Simulator" name="MOUNT_AXES" label="Mount Axes" group="Simulation" state="Idle" perm="ro" timeout="0" timestamp="2024-05-16T12:21:52">
                 	<defNumber name="PRIMARY" label="Primary (Ha)" format="%g" min="-180" max="180" step="0.010000000000000000208">
@@ -28,17 +32,22 @@ public class IndiClientTests {
         var client = new IndiClient();
         client.listen(reader);
 
-        var expected = List.of(new Property("Telescope Simulator", "Simulation",
-                PropertyType.NUMBER, "MOUNT_AXES", "Mount Axes", "Idle", "ro",
-                List.of(new Value("PRIMARY", "Primary (Ha)", "0"), new Value("SECONDARY", "Secondary (Dec)", "0"))));
-
-        System.out.println(client.properties);
         assertEquals(1, client.properties.size());
         assertEquals(expected, client.properties);
     }
 
     @Test
     void TestDefProperties() {
+        var expected = List.of(new Property("Telescope Simulator", "Simulation",
+                        PropertyType.NUMBER, "MOUNT_AXES", "Mount Axes", "Idle", "ro", "0", "2024-05-16T12:21:52",
+                        List.of(new Value("PRIMARY", "Primary (Ha)", "0"), new Value("SECONDARY", "Secondary (Dec)", "0"))),
+                new Property("Telescope Simulator", "Simulation",
+                        PropertyType.SWITCH, "SIM_PIER_SIDE", "Sim Pier Side", "Idle", "wo", "60", "2024-05-16T12:21:52",
+                        List.of(new Value("PS_OFF", "Off", "Off"), new Value("PS_ON", "On", "On"))),
+                new Property("Telescope Simulator", "Options",
+                        PropertyType.TEXT, "ACTIVE_DEVICES", "Snoop devices", "Idle", "rw", "60", "2024-05-16T12:21:52",
+                        List.of(new Value("ACTIVE_GPS", "GPS", "GPS Simulator"))));
+
         var elements = """
                 <defNumberVector device="Telescope Simulator" name="MOUNT_AXES" label="Mount Axes" group="Simulation" state="Idle" perm="ro" timeout="0" timestamp="2024-05-16T12:21:52">
                     <defNumber name="PRIMARY" label="Primary (Ha)" format="%g" min="-180" max="180" step="0.010000000000000000208">
@@ -68,17 +77,6 @@ public class IndiClientTests {
         var client = new IndiClient();
         client.listen(reader);
 
-        var expected = List.of(new Property("Telescope Simulator", "Simulation",
-                        PropertyType.NUMBER, "MOUNT_AXES", "Mount Axes", "Idle", "ro",
-                        List.of(new Value("PRIMARY", "Primary (Ha)", "0"), new Value("SECONDARY", "Secondary (Dec)", "0"))),
-                new Property("Telescope Simulator", "Simulation",
-                        PropertyType.SWITCH, "SIM_PIER_SIDE", "Sim Pier Side", "Idle", "wo",
-                        List.of(new Value("PS_OFF", "Off", "Off"), new Value("PS_ON", "On", "On"))),
-                new Property("Telescope Simulator", "Options",
-                        PropertyType.TEXT, "ACTIVE_DEVICES", "Snoop devices", "Idle", "rw",
-                        List.of(new Value("ACTIVE_GPS", "GPS", "GPS Simulator"))));
-
-        System.out.println(client.properties);
         assertEquals(3, client.properties.size());
         assertEquals(expected, client.properties);
     }
