@@ -73,6 +73,7 @@ live/server:
 	go run github.com/cosmtrek/air@v1.51.0 \
 	--build.cmd "go build -o tmp/indi-web ./cmd/indi-web/" --build.bin "tmp/indi-web" --build.delay "100" \
 	--build.exclude_dir "node_modules" \
+	--build.exclude_regex "_templ.go" \
 	--build.include_ext "go" \
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
