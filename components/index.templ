@@ -1,38 +1,43 @@
 package components
 
-import "github.com/adriffaud/indi-web/internal/indi-server"
 import "strings"
 import "github.com/adriffaud/indi-web/internal/indi-client"
-import "fmt"
 
 templ navItem(path, name, active string) {
-	<li class="nav-item">
-		<a href={ templ.URL(path) } class={ "nav-link" , templ.KV("active", active=="/hardware" ) }>{ name }</a>
+	<li>
+		<a href={ templ.URL(path) } class={ "hover:text-gray-300" , templ.KV("font-bold", active=="/hardware" ) }>{ name }</a>
 	</li>
 }
 
 templ navigation(active string) {
-	<nav class="navbar navbar-expand-lg bg-body-tertiary">
-		<div class="container-fluid">
-			<a href="/" class="navbar-brand">INDI Web</a>
-			<button
-				class="navbar-toggler"
-				type="button"
-				data-bs-toggle="collapse"
-				data-bs-target="#navbarSupportedContent"
-				aria-controls="navbarSupportedContent"
-				aria-expanded="false"
-				aria-label="Toggle navigation"
-			>
-				<span class="navbar-toggler-icon"></span>
+	<header class="bg-gray-900 text-gray-100 shadow sticky top-0 z-50">
+		<div class="container mx-auto px-4 py-4 flex items-center justify-between">
+			<a href="/" class="text-xl font-bold">INDI Air</a>
+			<button class="md:hidden text-gray-100 hover:text-gray-300 focus:outline-none" aria-label="Toggle navigation">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					class="h-6 w-6"
+				>
+					<line x1="4" x2="20" y1="12" y2="12"></line>
+					<line x1="4" x2="20" y1="6" y2="6"></line>
+					<line x1="4" x2="20" y1="18" y2="18"></line>
+				</svg>
 			</button>
-			<div class="collapse navbar-collapse" id="navbarSupportedContent">
-				<ul class="navbar-nav me-auto">
+			<nav class="hidden md:block">
+				<ul class="flex items-center space-x-4">
 					@navItem("/hardware", "Hardware configuration", active)
 				</ul>
-			</div>
+			</nav>
 		</div>
-	</nav>
+	</header>
 }
 
 templ Main(active string) {
@@ -47,21 +52,19 @@ templ propertyValues(property indiclient.Property) {
 		case indiclient.Text:
 			for _, value := range property.Values {
 				<div class="row mb-3">
-					<label for={ value.Name } class="col-sm-2 col-form-label col-form-label-sm">
-						{ 
-		value.Label }
-					</label>
-					<div class="col-sm-10">
-						<input
-							type="text"
-							id={ value.Name }
-							class="form-control"
-							value={ value.Value }
-							if property.Perm=="ro" {
-								disabled
-							}
-						/>
-					</div>
+					<label
+						class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-90 text-gray-300"
+						for={ value.Name }
+					>{ value.Label }</label>
+					<input
+						class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-100 bg-gray-700 text-gray-300 border-gray-600"
+						type="text"
+						id={ value.Name }
+						value={ value.Value }
+						if property.Perm=="ro" {
+							disabled
+						}
+					/>
 				</div>
 			}
 		case indiclient.Switch:
@@ -82,39 +85,58 @@ templ propertyValues(property indiclient.Property) {
 }
 
 templ groupView(properties indiclient.Properties, device string) {
-	for idx, group := range properties.GetDeviceGroupsSorted(device) {
-		<div class="accordion-item">
-			<h2 class="accordion-header">
-				<button
-					class={ "accordion-button" , templ.KV("collapsed", idx> 0) }
-					type="button"
-					data-bs-toggle="collapse"
-					data-bs-target={ fmt.Sprintf("#%s-%d", deviceId(device), idx) }
-					if idx == 0 {
-						aria-expanded="true"
-					} else {
-						aria-expanded="false"
-					}
-					aria-controls={ fmt.Sprintf("%s-%d", deviceId(device), idx) }
-				>
-					{ group }
-				</button>
-			</h2>
-			<div
-				id={ fmt.Sprintf("%s-%d", deviceId(device), idx) }
-				class={ "accordion-collapse collapse" , templ.KV("show",
-		idx==0) }
-				data-bs-parent={ fmt.Sprintf("#%s-accordion", deviceId(device)) }
-			>
-				<div class="accordion-body">
-					for _, property := range properties.GetPropertiesForDeviceGroup(device,
+	for _, group := range properties.GetDeviceGroupsSorted(device) {
+		<div class="space-y-4">
+			<div class="text-lg font-medium">{ group }</div>
+			for _, property := range properties.GetPropertiesForDeviceGroup(device,
 			group) {
-						<h5>{ property.Label }</h5>
-						<form>
-							@propertyValues(property)
-						</form>
-					}
-				</div>
+				<h5>{ property.Label }</h5>
+				<form>
+					@propertyValues(property)
+				</form>
+			}
+			<div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
+				<label
+					class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
+					for="username"
+				>
+					Username
+				</label>
+				<input
+					class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-gray-700 text-gray-300 border-gray-600"
+					id="username"
+					disabled=""
+					value="jdoe"
+				/>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
+				<label
+					class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
+					for="email"
+				>
+					Email
+				</label>
+				<input
+					class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-gray-700 text-gray-300 border-gray-600"
+					type="email"
+					id="email"
+					disabled=""
+					value="john@example.com"
+				/>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
+				<label
+					class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
+					for="age"
+				>
+					Age
+				</label>
+				<input
+					class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-gray-700 text-gray-300 border-gray-600"
+					type="number"
+					id="age"
+					value="35"
+				/>
 			</div>
 		</div>
 	}
@@ -125,14 +147,12 @@ func deviceId(device string) string {
 }
 
 templ deviceView(properties indiclient.Properties, device string) {
-	<div class="col-sm-12 col-md-6 g-4">
-		<div class="card">
-			<div class="card-header">{ device }</div>
-			<div class="card-body">
-				<div class="accordion accordion-flush" id={ fmt.Sprintf("%s-accordion", deviceId(device)) }>
-					@groupView(properties, device)
-				</div>
-			</div>
+	<div class="rounded-lg border bg-card text-card-foreground shadow-sm w-full dark:bg-gray-800 dark:text-gray-300">
+		<div class="flex flex-col space-y-1.5 p-6">
+			<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">{ device }</h3>
+		</div>
+		<div class="p-6 space-y-4">
+			@groupView(properties, device)
 		</div>
 	</div>
 }
@@ -140,69 +160,10 @@ templ deviceView(properties indiclient.Properties, device string) {
 templ Hardware(active string, properties indiclient.Properties) {
 	@Root() {
 		@navigation(active)
-		<div class="container-fluid mb-4">
-			<div class="row">
-				for _, device := range properties.GetDevicesSorted() {
-					@deviceView(properties, device)
-				}
-			</div>
-		</div>
-	}
-}
-
-templ driverSelector(group string, drivers []indiserver.Device, selection indiserver.Device) {
-	<label for={ strings.ToLower(group) + "_select" } class="form-label">{ group }</label>
-	<select id={ strings.ToLower(group) + "_select" } name={ strings.ToLower(group) + "_select" } class="form-control">
-		<option value=""></option>
-		for _, driver := range drivers {
-			<option
-				value={ driver.DriverName }
-				if selection.DriverName==driver.DriverName &&
-		selection.Manufacturer==driver.Manufacturer {
-					selected
-				}
-			>
-				{ driver.Manufacturer } - { driver.Name }
-			</option>
-		}
-	</select>
-}
-
-templ input(id, value string) {
-	<input id={ id } value={ value } class="form-control"/>
-}
-
-templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver.Device) {
-	@Root() {
-		<div class="container h-100">
-			<form method="post" class="row h-100 justify-content-center align-items-center">
-				<fieldset class="row g-4">
-					<div class="col-md-6">
-						<label for="date-time" class="form-label">Date/Time</label>
-						@input("date-time", "2023-11-01 20:45")
-					</div>
-					<div class="col-md-6">
-						@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
-					</div>
-					<div class="col-md-6">
-						<label for="latitude">Latitude</label>
-						@input("latitude", "N 47º 14' 25\"")
-					</div>
-					<div class="col-md-6">
-						@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
-					</div>
-					<div class="col-md-6">
-						<label for="longitude">Longitude</label>
-						@input("longitude", "E 05º 55' 57\"")
-					</div>
-					<div class="col-md-6">
-						@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
-					</div>
-					<div class="col-12 text-center">
-						<button id="indi_server" type="submit" class="btn btn-primary">Start</button>
-					</div>
-				</fieldset>
-			</form>
+		<div class="grid gap-6 px-4 py-6 md:grid-cols-2 md:px-6 lg:grid-cols-3 lg:py-12 dark:bg-gray-900">
+			for _, device := range properties.GetDevicesSorted() {
+				@deviceView(properties, device)
+			}
 		</div>
 	}
 }

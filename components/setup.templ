@@ -1,0 +1,71 @@
+package components
+
+import "strings"
+import "github.com/adriffaud/indi-web/internal/indi-server"
+
+templ driverSelector(group string, drivers []indiserver.Device, selection indiserver.Device) {
+	<label for={ strings.ToLower(group) + "_select" } class="text-right font-medium">{ group }</label>
+	<select id={ strings.ToLower(group) + "_select" } name={ strings.ToLower(group) + "_select" } class="col-span-3 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400">
+		<option value=""></option>
+		for _, driver := range drivers {
+			<option
+				value={ driver.DriverName }
+				if selection.DriverName==driver.DriverName &&
+		selection.Manufacturer==driver.Manufacturer {
+					selected
+				}
+			>
+				{ driver.Manufacturer } - { driver.Name }
+			</option>
+		}
+	</select>
+}
+
+templ input(id, value string) {
+	<input id={ id } value={ value } class="col-span-3 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400"/>
+}
+
+templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver.Device) {
+	@Root() {
+		<div class="flex justify-center items-center h-screen">
+			<form method="post" class="bg-white dark:bg-gray-950 rounded-lg shadow-lg p-8 w-full max-w-4xl grid gap-8 md:grid-cols-2">
+				<div class="space-y-6">
+					<div class="grid grid-cols-4 items-center gap-4">
+						<label for="date-time" class="text-right font-medium">Date/Time</label>
+						@input("date-time", "2023-11-01 20:45")
+					</div>
+				</div>
+				<div class="space-y-6">
+					<div class="grid grid-cols-4 items-center gap-4">
+						@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
+					</div>
+				</div>
+				<div class="space-y-6">
+					<div class="grid grid-cols-4 items-center gap-4">
+						<label for="latitude">Latitude</label>
+						@input("latitude", "N 47º 14' 25\"")
+					</div>
+				</div>
+				<div class="space-y-6">
+					<div class="grid grid-cols-4 items-center gap-4">
+						@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
+					</div>
+				</div>
+				<div class="space-y-6">
+					<div class="grid grid-cols-4 items-center gap-4">
+						<label for="longitude">Longitude</label>
+						@input("longitude", "E 05º 55' 57\"")
+					</div>
+				</div>
+				<div class="space-y-6">
+					<div class="grid grid-cols-4 items-center gap-4">
+						@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
+					</div>
+				</div>
+				<div class="col-span-2 flex justify-center">
+					<button id="indi_server" type="submit" class="bg-gray-900 hover:bg-gray-800 text-white font-medium py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-50">Start</button>
+				</div>
+			</form>
+		</div>
+	}
+}
