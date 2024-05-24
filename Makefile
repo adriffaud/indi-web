@@ -66,14 +66,31 @@ build:
 run: build
 	/tmp/bin/${BINARY_NAME}
 
-## run/live: run the application with reloading on file changes
-.PHONY: run/live
+live/templ:
+	templ generate --watch --proxy="http://localhost:8080" --open-browser=false -v
+
+live/server:
+	go run github.com/cosmtrek/air@v1.51.0 \
+	--build.cmd "go build -o tmp/indi-web ./cmd/indi-web/" --build.bin "tmp/indi-web" --build.delay "100" \
+	--build.exclude_dir "node_modules" \
+	--build.include_ext "go" \
+	--build.stop_on_error "false" \
+	--misc.clean_on_exit true
+
+live/tailwind:
+	npx tailwindcss -i ./input.css -o ./assets/styles.css --watch
+
+live/sync_assets:
+	go run github.com/cosmtrek/air@v1.51.0 \
+	--build.cmd "templ generate --notify-proxy" \
+	--build.bin "true" \
+	--build.delay "100" \
+	--build.exclude_dir "" \
+	--build.include_dir "assets" \
+	--build.include_ext "js,css"
+
 run/live:
-	go run github.com/cosmtrek/air@v1.52.0 \
-		--build.cmd "make build" --build.bin "/tmp/bin/${BINARY_NAME}" --build.delay "100" \
-		--build.exclude_dir "node_modules" \
-		--build.include_ext "go, tpl, tmpl, html, css, scss, js, ts, sql, jpeg, jpg, gif, png, bmp, svg, webp, ico" \
-		--misc.clean_on_exit "true"
+	make -j5 live/templ live/server live/tailwind live/sync_assets
 
 
 # ==================================================================================== #
