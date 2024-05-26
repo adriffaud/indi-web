@@ -1,65 +1,47 @@
 package components
 
+import "fmt"
 import "strings"
 import "github.com/adriffaud/indi-web/internal/indi-client"
 
 templ navItem(path, name, active string) {
 	<li>
-		<a href={ templ.URL(path) } class={ "hover:text-gray-300" , templ.KV("font-bold", active=="/hardware" ) }>{ name }</a>
+		<a href={ templ.URL(path) } class={ "hover:text-gray-300" , templ.KV("font-bold", active=="/hardware" ) }>
+			{ name }
+		</a>
 	</li>
 }
 
 templ navigation(active string) {
-	<header class="bg-gray-900 text-gray-100 shadow sticky top-0 z-50">
-		<div class="container mx-auto px-4 py-4 flex items-center justify-between">
-			<a href="/" class="text-xl font-bold">INDI Air</a>
-			<button class="md:hidden text-gray-100 hover:text-gray-300 focus:outline-none" aria-label="Toggle navigation">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					class="h-6 w-6"
-				>
-					<line x1="4" x2="20" y1="12" y2="12"></line>
-					<line x1="4" x2="20" y1="6" y2="6"></line>
-					<line x1="4" x2="20" y1="18" y2="18"></line>
-				</svg>
-			</button>
-			<nav class="hidden md:block">
-				<ul class="flex items-center space-x-4">
-					@navItem("/hardware", "Hardware configuration", active)
-				</ul>
-			</nav>
-		</div>
-	</header>
+	<nav style="position: sticky; top: 0; background-color: rgb(200,200,200); line-height: 1.5; border-bottom: 1px solid black;">
+		<ul style="display: flex; list-style: none; margin: 0; padding: 0.2rem 1rem; gap: 1rem;">
+			@navItem("/", "Home", active)
+			@navItem("/hardware", "Hardware configuration", active)
+		</ul>
+	</nav>
 }
 
 templ Main(active string) {
-	@Root() {
-		@navigation(active)
+	@Root(active) {
 		<div></div>
 	}
 }
 
+func uniqueValueName(property indiclient.Property, name string) string {
+	device := strings.ReplaceAll(strings.ToLower(property.Device), " ", "_")
+	group := strings.ToLower(property.Group)
+	return fmt.Sprintf("%s_%s_%s", device, group, name)
+}
+
 templ propertyValues(property indiclient.Property) {
 	switch property.Type {
-		case indiclient.Text:
+		case indiclient.Text, indiclient.Number:
 			for _, value := range property.Values {
-				<div class="row mb-3">
-					<label
-						class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-90 text-gray-300"
-						for={ value.Name }
-					>{ value.Label }</label>
+				<div style="display: flex; gap: 1rem;">
+					<label for={ uniqueValueName(property, value.Name) }>{ value.Label }</label>
 					<input
-						class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-100 bg-gray-700 text-gray-300 border-gray-600"
 						type="text"
-						id={ value.Name }
+						id={ uniqueValueName(property, value.Name) }
 						value={ value.Value }
 						if property.Perm=="ro" {
 							disabled
@@ -68,12 +50,11 @@ templ propertyValues(property indiclient.Property) {
 				</div>
 			}
 		case indiclient.Switch:
-			<div class="btn-group" role="group" aria-label="Basic example">
+			<div style="display: flex; gap: 0.2rem;">
 				for _, value := range property.Values {
 					<button
 						type="button"
-						class={ "btn btn-primary" , templ.KV("active", value.Value=="On" ) }
-						if property.Perm=="ro" {
+						if property.Perm=="ro" || value.Value == "On" {
 							disabled
 						}
 					>
@@ -86,59 +67,14 @@ templ propertyValues(property indiclient.Property) {
 
 templ groupView(properties indiclient.Properties, device string) {
 	for _, group := range properties.GetDeviceGroupsSorted(device) {
-		<div class="space-y-4">
-			<div class="text-lg font-medium">{ group }</div>
-			for _, property := range properties.GetPropertiesForDeviceGroup(device,
-			group) {
-				<h5>{ property.Label }</h5>
-				<form>
-					@propertyValues(property)
-				</form>
-			}
-			<div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
-				<label
-					class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
-					for="username"
-				>
-					Username
-				</label>
-				<input
-					class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-gray-700 text-gray-300 border-gray-600"
-					id="username"
-					disabled=""
-					value="jdoe"
-				/>
-			</div>
-			<div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
-				<label
-					class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
-					for="email"
-				>
-					Email
-				</label>
-				<input
-					class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-gray-700 text-gray-300 border-gray-600"
-					type="email"
-					id="email"
-					disabled=""
-					value="john@example.com"
-				/>
-			</div>
-			<div class="grid grid-cols-1 sm:grid-cols-2 items-center gap-4">
-				<label
-					class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
-					for="age"
-				>
-					Age
-				</label>
-				<input
-					class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-gray-700 text-gray-300 border-gray-600"
-					type="number"
-					id="age"
-					value="35"
-				/>
-			</div>
-		</div>
+		<h4>{ group }</h4>
+		for _, property := range properties.GetPropertiesForDeviceGroup(device,
+	group) {
+			<h5>{ property.Label }</h5>
+			<form style="display: flex; flex-direction: column; align-items: end; gap: 0.5rem;">
+				@propertyValues(property)
+			</form>
+		}
 	}
 }
 
@@ -147,20 +83,15 @@ func deviceId(device string) string {
 }
 
 templ deviceView(properties indiclient.Properties, device string) {
-	<div class="rounded-lg border bg-card text-card-foreground shadow-sm w-full dark:bg-gray-800 dark:text-gray-300">
-		<div class="flex flex-col space-y-1.5 p-6">
-			<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">{ device }</h3>
-		</div>
-		<div class="p-6 space-y-4">
-			@groupView(properties, device)
-		</div>
-	</div>
+	<fieldset>
+		<legend>{ device }</legend>
+		@groupView(properties, device)
+	</fieldset>
 }
 
 templ Hardware(active string, properties indiclient.Properties) {
-	@Root() {
-		@navigation(active)
-		<div class="grid gap-6 px-4 py-6 md:grid-cols-2 md:px-6 lg:grid-cols-3 lg:py-12 dark:bg-gray-900">
+	@Root(active) {
+		<div style="margin: 1rem; display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; justify-content: space-evenly;">
 			for _, device := range properties.GetDevicesSorted() {
 				@deviceView(properties, device)
 			}

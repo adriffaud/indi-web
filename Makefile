@@ -78,9 +78,6 @@ live/server:
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 
-live/tailwind:
-	npx tailwindcss -i ./input.css -o ./assets/styles.css --watch
-
 live/sync_assets:
 	go run github.com/cosmtrek/air@v1.51.0 \
 	--build.cmd "templ generate --notify-proxy" \
@@ -91,4 +88,4 @@ live/sync_assets:
 	--build.include_ext "js,css"
 
 run/live:
-	make -j5 live/templ live/server live/tailwind live/sync_assets
+	make -j5 live/templ live/server live/sync_assets
