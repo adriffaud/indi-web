@@ -41,7 +41,7 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 		}
 	}
 	for _, driver := range driverGroups["Focusers"] {
-		if driver.DriverName == "indi_simulator_focuser" && driver.Manufacturer == "Simulator" {
+		if driver.DriverName == "indi_simulator_focus" && driver.Manufacturer == "Simulator" {
 			devices["focuser"] = driver
 		}
 	}
