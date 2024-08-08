@@ -51,6 +51,7 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 
 func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	slog.Debug("Handling INDI server setup")
+
 	if indiserver.IsRunning() {
 		slog.Debug("Stopping INDI server")
 		err := indiserver.Stop()
@@ -61,7 +62,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 
 		defer app.indiClient.Close()
 
-		w.Header().Add("HX-Location", "/")
+		http.Redirect(w, r, "/setup", http.StatusSeeOther)
 		return
 	}
 

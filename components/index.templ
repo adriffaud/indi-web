@@ -25,7 +25,11 @@ templ navigation(active string) {
 
 templ Main(active string) {
 	@Root(active) {
-		<div></div>
+		<div class="flex flex-col gap-4">
+			<form method="POST" action="/setup" class="rounded-lg my-4 dark:bg-gray-800 p-4">
+				@button("submit", "Stop INDI server", nil)
+			</form>
+		</div>
 	}
 }
 

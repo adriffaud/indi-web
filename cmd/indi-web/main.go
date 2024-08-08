@@ -21,7 +21,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&host, "host", "localhost", "server host")
+	flag.StringVar(&host, "host", "", "server host")
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.Parse()
 

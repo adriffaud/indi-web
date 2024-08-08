@@ -14,11 +14,11 @@ func (app *application) checkServerStarted(next http.Handler) http.Handler {
 
 		if !indiserver.IsRunning() && r.URL.Path != "/setup" && !strings.HasPrefix(r.URL.Path, "/static/") {
 			slog.Debug("INDI server is not running, redirecting to setup")
-			http.Redirect(w, r, "/setup", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/setup", http.StatusSeeOther)
 			return
-		} else if indiserver.IsRunning() && r.URL.Path == "/setup" {
+		} else if indiserver.IsRunning() && r.URL.Path == "/setup" && r.Method != "POST" {
 			slog.Debug("INDI server is running, redirecting to index")
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
