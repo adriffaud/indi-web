@@ -40,6 +40,11 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 			devices["guide"] = driver
 		}
 	}
+	for _, driver := range driverGroups["Focusers"] {
+		if driver.DriverName == "indi_simulator_focuser" && driver.Manufacturer == "Simulator" {
+			devices["focuser"] = driver
+		}
+	}
 
 	components.Setup(driverGroups, devices).Render(r.Context(), w)
 }
