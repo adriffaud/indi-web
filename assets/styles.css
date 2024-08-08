@@ -562,10 +562,6 @@ video {
   top: 0px;
 }
 
-.m-4 {
-  margin: 1rem;
-}
-
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
@@ -577,10 +573,6 @@ video {
 
 .flex {
   display: flex;
-}
-
-.grid {
-  display: grid;
 }
 
 .h-screen {
@@ -599,10 +591,6 @@ video {
   list-style-type: none;
 }
 
-.flex-col {
-  flex-direction: column;
-}
-
 .flex-wrap {
   flex-wrap: wrap;
 }
@@ -615,16 +603,16 @@ video {
   justify-content: center;
 }
 
-.gap-8 {
-  gap: 2rem;
-}
-
 .gap-4 {
   gap: 1rem;
 }
 
 .rounded-lg {
   border-radius: 0.5rem;
+}
+
+.rounded {
+  border-radius: 0.25rem;
 }
 
 .border {
@@ -650,6 +638,16 @@ video {
   border-color: rgb(63 63 70 / var(--tw-border-opacity));
 }
 
+.bg-gray-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+}
+
+.bg-gray-950 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(3 7 18 / var(--tw-bg-opacity));
+}
+
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
@@ -660,26 +658,13 @@ video {
   background-color: rgb(24 24 27 / var(--tw-bg-opacity));
 }
 
-.bg-gray-950 {
+.bg-blue-500 {
   --tw-bg-opacity: 1;
-  background-color: rgb(3 7 18 / var(--tw-bg-opacity));
-}
-
-.bg-gray-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(243 244 246 / var(--tw-bg-opacity));
+  background-color: rgb(59 130 246 / var(--tw-bg-opacity));
 }
 
 .p-8 {
   padding: 2rem;
-}
-
-.p-4 {
-  padding: 1rem;
-}
-
-.p-2 {
-  padding: 0.5rem;
 }
 
 .px-3 {
@@ -697,19 +682,19 @@ video {
   padding-bottom: 1rem;
 }
 
-.text-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
-
-.text-xl {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
 .font-bold {
@@ -724,6 +709,11 @@ video {
   line-height: 1.5rem;
 }
 
+.text-gray-900 {
+  --tw-text-opacity: 1;
+  color: rgb(17 24 39 / var(--tw-text-opacity));
+}
+
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
@@ -732,11 +722,6 @@ video {
 .text-zinc-800 {
   --tw-text-opacity: 1;
   color: rgb(39 39 42 / var(--tw-text-opacity));
-}
-
-.text-gray-900 {
-  --tw-text-opacity: 1;
-  color: rgb(17 24 39 / var(--tw-text-opacity));
 }
 
 .shadow-lg {
@@ -754,6 +739,11 @@ video {
 .hover\:bg-zinc-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(63 63 70 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-blue-700:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(29 78 216 / var(--tw-bg-opacity));
 }
 
 .hover\:text-gray-300:hover {
@@ -786,25 +776,15 @@ video {
   color: rgb(255 255 255 / 0.8);
 }
 
-@media (min-width: 768px) {
-  .md\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .md\:grid-cols-1 {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-  }
-}
-
 @media (prefers-color-scheme: dark) {
-  .dark\:border-gray-700 {
-    --tw-border-opacity: 1;
-    border-color: rgb(55 65 81 / var(--tw-border-opacity));
-  }
-
   .dark\:border-gray-600 {
     --tw-border-opacity: 1;
     border-color: rgb(75 85 99 / var(--tw-border-opacity));
+  }
+
+  .dark\:border-gray-700 {
+    --tw-border-opacity: 1;
+    border-color: rgb(55 65 81 / var(--tw-border-opacity));
   }
 
   .dark\:border-zinc-600 {
@@ -812,14 +792,9 @@ video {
     border-color: rgb(82 82 91 / var(--tw-border-opacity));
   }
 
-  .dark\:bg-gray-950 {
+  .dark\:bg-gray-700 {
     --tw-bg-opacity: 1;
-    background-color: rgb(3 7 18 / var(--tw-bg-opacity));
-  }
-
-  .dark\:bg-gray-900 {
-    --tw-bg-opacity: 1;
-    background-color: rgb(17 24 39 / var(--tw-bg-opacity));
+    background-color: rgb(55 65 81 / var(--tw-bg-opacity));
   }
 
   .dark\:bg-gray-800 {
@@ -827,9 +802,9 @@ video {
     background-color: rgb(31 41 55 / var(--tw-bg-opacity));
   }
 
-  .dark\:bg-gray-700 {
+  .dark\:bg-gray-900 {
     --tw-bg-opacity: 1;
-    background-color: rgb(55 65 81 / var(--tw-bg-opacity));
+    background-color: rgb(17 24 39 / var(--tw-bg-opacity));
   }
 
   .dark\:bg-zinc-800 {
