@@ -1,8 +1,10 @@
 package components
 
-import "fmt"
-import "strings"
-import "github.com/adriffaud/indi-web/internal/indi-client"
+import (
+	"fmt"
+	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
+	"strings"
+)
 
 templ navItem(path, name, active string) {
 	<li>
@@ -13,8 +15,8 @@ templ navItem(path, name, active string) {
 }
 
 templ navigation(active string) {
-	<nav style="position: sticky; top: 0; background-color: rgb(200,200,200); line-height: 1.5; border-bottom: 1px solid black;">
-		<ul style="display: flex; list-style: none; margin: 0; padding: 0.2rem 1rem; gap: 1rem;">
+	<nav class="sticky top-0 bg-zinc-900 dark:bg-zinc-800 border-b border-zinc-700 dark:border-zinc-600 py-2 px-3 text-sm font-semibold leading-6 text-white">
+		<ul class="flex list-none gap-4">
 			@navItem("/", "Home", active)
 			@navItem("/hardware", "Hardware configuration", active)
 		</ul>
@@ -56,6 +58,9 @@ templ propertyValues(property indiclient.Property) {
 						type="button"
 						if property.Perm=="ro" || value.Value == "On" {
 							disabled
+						} else {
+							hx-trigger="click"
+							hx-post="/hardware/action"
 						}
 					>
 						{ value.Label }

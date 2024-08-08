@@ -1,11 +1,17 @@
 package components
 
-import "strings"
-import "github.com/adriffaud/indi-web/internal/indi-server"
+import (
+	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	"strings"
+)
 
 templ driverSelector(group string, drivers []indiserver.Device, selection indiserver.Device) {
-	<label for={ strings.ToLower(group) + "_select" }>{ group }</label>
-	<select id={ strings.ToLower(group) + "_select" } name={ strings.ToLower(group) + "_select" }>
+	@label(strings.ToLower(group)+"_select", group)
+	<select
+		id={ strings.ToLower(group) + "_select" }
+		name={ strings.ToLower(group) + "_select" }
+		class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+	>
 		<option value=""></option>
 		for _, driver := range drivers {
 			<option
@@ -23,26 +29,24 @@ templ driverSelector(group string, drivers []indiserver.Device, selection indise
 
 templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver.Device) {
 	@EmptyRoot() {
-		<div class="centered">
-			<form method="post">
-				<fieldset style="display: flex; flex-direction: column; align-items: center;">
-					<legend>Hardware setup</legend>
-					<div style="display: flex;justify-content: space-evenly; width: 100%;">
-						<div style="display: flex; flex-direction: column;">
-							<label for="date-time">Date/Time</label>
-							<input id="date-time" value="2023-11-01 20:45" type="text"/>
-							<label for="latitude">Latitude</label>
-							<input id="latitude" value="N 47º 14' 25" type="text"/>
-							<label for="longitude">Longitude</label>
-							<input id="longitude" value="E 05º 55' 57" type="text"/>
-						</div>
-						<div style="display: flex; flex-direction: column;">
-							@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
-							@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
-							@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
-						</div>
+		<div class="flex justify-center items-center h-screen">
+			<form method="post" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-4xl">
+				<fieldset class="w-full">
+					<legend class="text-lg font-bold dark:text-white">Hardware setup</legend>
+					<div class="py-4">
+						@label("date-time", "Date/Time")
+						@textInput("date-time", "2023-11-01 20:45", nil)
+						@label("latitude", "Latitude")
+						@textInput("latitude", "N 47º 14' 25", nil)
+						@label("longitude", "Longitude")
+						@textInput("longitude", "E 05º 55' 57", nil)
+						<hr class="border-gray-200 dark:border-gray-700 my-4"/>
+						@driverSelector("Mount", driversGroups["Telescopes"], devices["mount"])
+						@driverSelector("Camera", driversGroups["CCDs"], devices["ccd"])
+						@driverSelector("Guider", driversGroups["CCDs"], devices["guide"])
+						@driverSelector("Focuser", driversGroups["Focusers"], devices["focuser"])
 					</div>
-					<div style="padding-top: 16px;">
+					<div>
 						@button("submit", "Start", nil)
 					</div>
 				</fieldset>
