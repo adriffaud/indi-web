@@ -50,7 +50,9 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 }
 
 func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	slog.Debug("Handling INDI server setup")
 	if indiserver.IsRunning() {
+		slog.Debug("Stopping INDI server")
 		err := indiserver.Stop()
 		if err != nil {
 			slog.Error("could not stop INDI server", "error", err)
@@ -91,5 +93,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 	}
 	app.indiClient.GetProperties()
 
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+	slog.Debug("INDI client connected")
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
