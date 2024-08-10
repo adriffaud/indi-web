@@ -33,20 +33,14 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 			devices["mount"] = driver
 		}
 	}
-	// for _, driver := range driverGroups["CCDs"] {
-	// 	if driver.DriverName == "indi_simulator_ccd" && driver.Manufacturer == "Simulator" {
-	// 		devices["ccd"] = driver
-	// 	} else if driver.DriverName == "indi_simulator_guide" && driver.Manufacturer == "Simulator" {
-	// 		devices["guide"] = driver
-	// 	}
-	// }
-	// for _, driver := range driverGroups["Focusers"] {
-	// 	if driver.DriverName == "indi_simulator_focus" && driver.Manufacturer == "Simulator" {
-	// 		devices["focuser"] = driver
-	// 	}
-	// }
 
 	components.Setup(driverGroups, devices).Render(r.Context(), w)
+}
+
+func (app *application) indiAction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	slog.Debug("Sending connection property")
+	app.indiClient.SetProperty()
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

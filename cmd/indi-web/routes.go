@@ -13,7 +13,8 @@ func (app application) routes() http.Handler {
 
 	router.GET("/", app.index)
 	router.POST("/", app.index)
-	router.GET("/hardware", app.hardware)
+	// router.GET("/hardware", app.hardware)
+	router.POST("/indi/action", app.indiAction)
 	router.GET("/setup", app.setup)
 	router.POST("/setup", app.INDIServer)
 

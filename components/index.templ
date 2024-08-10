@@ -10,6 +10,11 @@ templ Main() {
 	@Root() {
 		<div class="flex flex-col gap-4">
 			@card() {
+				<form method="POST" action="/indi/action">
+					@button("submit", "Connecter monture", nil)
+				</form>
+			}
+			@card() {
 				<form method="POST" action="/setup">
 					@button("submit", "Arrêter serveur INDI", nil)
 				</form>

@@ -39,6 +39,10 @@ func (c *Client) GetProperties() error {
 	return c.sendMessage("<getProperties version=\"1.7\"/>")
 }
 
+func (c *Client) SetProperty() error {
+	return c.sendMessage("<getProperties version=\"1.7\"/>")
+}
+
 func (c *Client) sendMessage(message string) error {
 	_, err := fmt.Fprint(c.conn, message)
 	if err != nil {
