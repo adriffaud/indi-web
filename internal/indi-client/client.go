@@ -132,15 +132,15 @@ func (c *Client) listen(reader io.Reader) {
 			case "setNumberVector":
 				c.updatePropertyValues(property)
 			}
-			// default:
-			// 	slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t), "value", se)
+		default:
+			slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t), "value", se)
 		}
-
 	}
 }
 
 func (c *Client) addToProperties(property Property) {
 	c.delFromProperties(property.Device, property.Name)
+	slog.Debug("Adding property", "property", property)
 	c.Properties = append(c.Properties, property)
 }
 
