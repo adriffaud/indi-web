@@ -18,12 +18,18 @@ func Start(drivers []string) error {
 		return nil
 	}
 
-	slog.Info("Starting INDI server", "drivers", drivers)
+	d := make([]string, 0, len(drivers))
+	for _, driver := range drivers {
+		if driver != "" {
+			d = append(d, driver)
+		}
+	}
+	slog.Info("Starting INDI server", "drivers", d)
 
 	cmdLock.Lock()
 	defer cmdLock.Unlock()
 
-	cmd = exec.Command("indiserver", drivers...)
+	cmd = exec.Command("indiserver", d...)
 	cmd.Stdout = log.Writer()
 	cmd.Stderr = log.Writer()
 
