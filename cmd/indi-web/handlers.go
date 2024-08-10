@@ -12,11 +12,11 @@ import (
 )
 
 func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	components.Main(r.URL.Path).Render(r.Context(), w)
+	components.Main().Render(r.Context(), w)
 }
 
 func (app *application) hardware(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	components.Hardware(r.URL.Path, app.indiClient.Properties).Render(r.Context(), w)
+	components.Hardware(app.indiClient.Properties).Render(r.Context(), w)
 }
 
 func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -33,18 +33,18 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 			devices["mount"] = driver
 		}
 	}
-	for _, driver := range driverGroups["CCDs"] {
-		if driver.DriverName == "indi_simulator_ccd" && driver.Manufacturer == "Simulator" {
-			devices["ccd"] = driver
-		} else if driver.DriverName == "indi_simulator_guide" && driver.Manufacturer == "Simulator" {
-			devices["guide"] = driver
-		}
-	}
-	for _, driver := range driverGroups["Focusers"] {
-		if driver.DriverName == "indi_simulator_focus" && driver.Manufacturer == "Simulator" {
-			devices["focuser"] = driver
-		}
-	}
+	// for _, driver := range driverGroups["CCDs"] {
+	// 	if driver.DriverName == "indi_simulator_ccd" && driver.Manufacturer == "Simulator" {
+	// 		devices["ccd"] = driver
+	// 	} else if driver.DriverName == "indi_simulator_guide" && driver.Manufacturer == "Simulator" {
+	// 		devices["guide"] = driver
+	// 	}
+	// }
+	// for _, driver := range driverGroups["Focusers"] {
+	// 	if driver.DriverName == "indi_simulator_focus" && driver.Manufacturer == "Simulator" {
+	// 		devices["focuser"] = driver
+	// 	}
+	// }
 
 	components.Setup(driverGroups, devices).Render(r.Context(), w)
 }

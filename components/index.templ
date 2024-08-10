@@ -6,29 +6,14 @@ import (
 	"strings"
 )
 
-templ navItem(path, name, active string) {
-	<li>
-		<a href={ templ.URL(path) } class={ "hover:text-gray-300" , templ.KV("font-bold", active=="/hardware" ) }>
-			{ name }
-		</a>
-	</li>
-}
-
-templ navigation(active string) {
-	<nav class="sticky top-0 bg-zinc-900 dark:bg-zinc-800 border-b border-zinc-700 dark:border-zinc-600 py-2 px-3 text-sm font-semibold leading-6 text-white">
-		<ul class="flex list-none gap-4">
-			@navItem("/", "Home", active)
-			@navItem("/hardware", "Hardware configuration", active)
-		</ul>
-	</nav>
-}
-
-templ Main(active string) {
-	@Root(active) {
+templ Main() {
+	@Root() {
 		<div class="flex flex-col gap-4">
-			<form method="POST" action="/setup" class="rounded-lg my-4 dark:bg-gray-800 p-4">
-				@button("submit", "Stop INDI server", nil)
-			</form>
+			@card() {
+				<form method="POST" action="/setup">
+					@button("submit", "Arrêter serveur INDI", nil)
+				</form>
+			}
 		</div>
 	}
 }
@@ -98,8 +83,8 @@ templ deviceView(properties indiclient.Properties, device string) {
 	</fieldset>
 }
 
-templ Hardware(active string, properties indiclient.Properties) {
-	@Root(active) {
+templ Hardware(properties indiclient.Properties) {
+	@Root() {
 		<div style="margin: 1rem; display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; justify-content: space-evenly;">
 			for _, device := range properties.GetDevicesSorted() {
 				@deviceView(properties, device)

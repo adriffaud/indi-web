@@ -1,6 +1,6 @@
 package components
 
-templ EmptyRoot() {
+templ Root() {
 	<!DOCTYPE html>
 	<html lang="en" data-bs-theme="dark">
 		<head>
@@ -14,11 +14,4 @@ templ EmptyRoot() {
 			{ children... }
 		</body>
 	</html>
-}
-
-templ Root(active string) {
-	@EmptyRoot() {
-		@navigation(active)
-		{ children... }
-	}
 }
