@@ -58,7 +58,7 @@ test/cover:
 ## build: build the application
 .PHONY: build
 build:
-	go run github.com/a-h/templ/cmd/templ@v0.2.680 generate
+	go run github.com/a-h/templ/cmd/templ@v0.2.747 generate
 	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
