@@ -1,0 +1,113 @@
+package components
+
+import (
+	"fmt"
+	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
+	"strings"
+)
+
+func uniqueValueName(property indiclient.Property, name string) string {
+	device := strings.ReplaceAll(strings.ToLower(property.Device), " ", "_")
+	group := strings.ToLower(property.Group)
+	return fmt.Sprintf("%s_%s_%s", device, group, name)
+}
+
+templ propertyValues(property indiclient.Property) {
+	switch property.Type {
+		case indiclient.Text, indiclient.Number:
+			for _, value := range property.Values {
+				<tr>
+					<td>
+						<label for={ uniqueValueName(property, value.Name) }>{ value.Label }</label>
+					</td>
+					<td>
+						<input
+							type="text"
+							id={ uniqueValueName(property, value.Name) }
+							value={ value.Value }
+							if property.Perm=="ro" {
+								disabled
+							}
+						/>
+					</td>
+				</tr>
+			}
+		case indiclient.Switch:
+			<tr>
+				<td>
+					for _, value := range property.Values {
+						<button
+							data-device={ property.Device }
+							data-name={ property.Name }
+							data-value={ value.Name }
+							type="button"
+							if property.Perm=="ro" || value.Value == "On" {
+								disabled
+							}
+						>
+							{ value.Label }
+						</button>
+					}
+				</td>
+			</tr>
+	}
+}
+
+templ groupView(properties indiclient.Properties, device string) {
+	for _, group := range properties.GetDeviceGroupsSorted(device) {
+		<tr>
+			<th colspan="6" style="border: 1px solid black; background-color: yellow;">{ group }</th>
+		</tr>
+		for _, property := range properties.GetPropertiesForDeviceGroup(device,
+	group) {
+			<tr>
+				<td colspan="6" style="border: 1px solid black; background-color: cyan;">{ property.Label }</td>
+			</tr>
+			@propertyValues(property)
+		}
+	}
+}
+
+func deviceId(device string) string {
+	return strings.ReplaceAll(strings.ToLower(device), " ", "-")
+}
+
+templ deviceView(properties indiclient.Properties, device string) {
+	<table style="border: 2px solid black; border-collapse: collapse;">
+		<thead>
+			<tr>
+				<th colspan="6" style="border: 1px solid black; background-color: gray;">{ device }</th>
+			</tr>
+		</thead>
+		<tbody>
+			@groupView(properties, device)
+		</tbody>
+	</table>
+}
+
+templ Hardware(properties indiclient.Properties) {
+	@Root() {
+		<div>
+			for _, device := range properties.GetDevicesSorted() {
+				@deviceView(properties, device)
+			}
+		</div>
+	}
+}
+
+templ RawHardware(properties indiclient.Properties) {
+	<!DOCTYPE html>
+	<html lang="fr">
+		<head>
+			<title>INDI Air</title>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		</head>
+		<body>
+			for _, device := range properties.GetDevicesSorted() {
+				@deviceView(properties, device)
+			}
+			<script src="static/scripts.js"></script>
+		</body>
+	</html>
+}

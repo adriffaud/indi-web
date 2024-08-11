@@ -78,3 +78,13 @@ func (p Properties) GetPropertiesForDeviceGroup(device, group string) Properties
 	}
 	return filtered
 }
+
+func (p Properties) FindProperty(selector PropertySelector) *Property {
+	for _, property := range p {
+		if property.Device == selector.Device && property.Name == selector.Name {
+			return &property
+		}
+	}
+
+	return nil
+}

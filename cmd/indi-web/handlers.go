@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -16,7 +18,7 @@ func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprout
 }
 
 func (app *application) hardware(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	components.Hardware(app.indiClient.Properties).Render(r.Context(), w)
+	components.RawHardware(app.indiClient.Properties).Render(r.Context(), w)
 }
 
 func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -38,9 +40,28 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 }
 
 func (app *application) indiAction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	slog.Debug("Sending connection property")
-	app.indiClient.SetProperty()
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Unable to read request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var selector indiclient.PropertySelector
+	err = json.Unmarshal(body, &selector)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	slog.Debug("Sending connection property", "selector", selector)
+	err = app.indiClient.NewPropertyValue(selector)
+	if err != nil {
+		slog.Error("INDI action", "selector", selector, "error", err)
+		http.Error(w, "could not send new property value", http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -90,5 +111,5 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ htt
 
 	slog.Debug("INDI client connected")
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/hardware", http.StatusSeeOther)
 }

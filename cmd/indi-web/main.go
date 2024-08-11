@@ -9,6 +9,7 @@ import (
 	"time"
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
+	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
 )
 
 type application struct {
@@ -29,6 +30,26 @@ func main() {
 	slog.SetDefault(logger)
 
 	app := &application{}
+
+	// TEMP AUTOSTART
+	err := indiserver.Start([]string{"indi_simulator_telescope"})
+	if err != nil {
+		slog.Info("could not start INDI server", "error", err)
+		return
+	}
+
+	time.Sleep(40 * time.Millisecond)
+
+	client, err := indiclient.New("localhost:7624")
+	if err != nil {
+		slog.Info("could not start INDI client", "error", err)
+		return
+	}
+	app.indiClient = client
+	app.indiClient.GetProperties()
+
+	slog.Debug("INDI client connected")
+	// TEMP AUTOSTART
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", host, port),

@@ -39,8 +39,22 @@ func (c *Client) GetProperties() error {
 	return c.sendMessage("<getProperties version=\"1.7\"/>")
 }
 
-func (c *Client) SetProperty() error {
-	return c.sendMessage("<getProperties version=\"1.7\"/>")
+func (c *Client) NewPropertyValue(selector PropertySelector) error {
+	property := c.Properties.FindProperty(selector)
+
+	var newValue string
+	for _, value := range property.Values {
+		if value.Name == selector.Value && value.Value == "Off" {
+			newValue = "On"
+		} else if value.Name == selector.Value && value.Value == "On" {
+			newValue = "Off"
+		}
+	}
+
+	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">%s</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.Value, newValue)
+	slog.Debug("NewPropertyValue", "selector", selector, "property", property, "xml", xml)
+
+	return c.sendMessage(xml)
 }
 
 func (c *Client) sendMessage(message string) error {
@@ -122,6 +136,8 @@ func (c *Client) listen(reader io.Reader) {
 					attrs[attr.Name.Local] = attr.Value
 				}
 				value = Value{Name: attrs["name"]}
+			case "message":
+				slog.Debug("MESSAGE", "message", se)
 			default:
 				slog.Warn("Unhandled data type", "type", se.Name.Local)
 			}
@@ -137,18 +153,19 @@ func (c *Client) listen(reader io.Reader) {
 				c.updatePropertyValues(property)
 			}
 		default:
-			slog.Warn(fmt.Sprintf("Unhandled element type: %T\n", t), "value", se)
+			slog.Warn(fmt.Sprintf("⚠️ Unhandled element type: %T\n", t), "value", se)
 		}
 	}
 }
 
 func (c *Client) addToProperties(property Property) {
 	c.delFromProperties(property.Device, property.Name)
-	slog.Debug("Adding property", "property", property)
+	slog.Debug("➕ Adding property", "property", property)
 	c.Properties = append(c.Properties, property)
 }
 
 func (c *Client) delFromProperties(device, name string) {
+	slog.Debug("🚮 Deleting property", "device", device, "name", name)
 	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == device && p.Name == name })
 	if propIdx >= 0 {
 		c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)

@@ -1,15 +1,10 @@
 package components
 
-import (
-	"fmt"
-	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
-	"strings"
-)
-
 templ Main() {
 	@Root() {
 		<div class="flex flex-col gap-4">
 			@card() {
+				<a href="/hardware" class="text-blue-600 visited:text-purple-600">Page matériel</a>
 				<form method="POST" action="/indi/action">
 					@button("submit", "Connecter monture", nil)
 				</form>
@@ -18,81 +13,6 @@ templ Main() {
 				<form method="POST" action="/setup">
 					@button("submit", "Arrêter serveur INDI", nil)
 				</form>
-			}
-		</div>
-	}
-}
-
-func uniqueValueName(property indiclient.Property, name string) string {
-	device := strings.ReplaceAll(strings.ToLower(property.Device), " ", "_")
-	group := strings.ToLower(property.Group)
-	return fmt.Sprintf("%s_%s_%s", device, group, name)
-}
-
-templ propertyValues(property indiclient.Property) {
-	switch property.Type {
-		case indiclient.Text, indiclient.Number:
-			for _, value := range property.Values {
-				<div style="display: flex; gap: 1rem;">
-					<label for={ uniqueValueName(property, value.Name) }>{ value.Label }</label>
-					<input
-						type="text"
-						id={ uniqueValueName(property, value.Name) }
-						value={ value.Value }
-						if property.Perm=="ro" {
-							disabled
-						}
-					/>
-				</div>
-			}
-		case indiclient.Switch:
-			<div style="display: flex; gap: 0.2rem;">
-				for _, value := range property.Values {
-					<button
-						type="button"
-						if property.Perm=="ro" || value.Value == "On" {
-							disabled
-						} else {
-							hx-trigger="click"
-							hx-post="/hardware/action"
-						}
-					>
-						{ value.Label }
-					</button>
-				}
-			</div>
-	}
-}
-
-templ groupView(properties indiclient.Properties, device string) {
-	for _, group := range properties.GetDeviceGroupsSorted(device) {
-		<h4>{ group }</h4>
-		for _, property := range properties.GetPropertiesForDeviceGroup(device,
-	group) {
-			<h5>{ property.Label }</h5>
-			<form style="display: flex; flex-direction: column; align-items: end; gap: 0.5rem;">
-				@propertyValues(property)
-			</form>
-		}
-	}
-}
-
-func deviceId(device string) string {
-	return strings.ReplaceAll(strings.ToLower(device), " ", "-")
-}
-
-templ deviceView(properties indiclient.Properties, device string) {
-	<fieldset>
-		<legend>{ device }</legend>
-		@groupView(properties, device)
-	</fieldset>
-}
-
-templ Hardware(properties indiclient.Properties) {
-	@Root() {
-		<div style="margin: 1rem; display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; justify-content: space-evenly;">
-			for _, device := range properties.GetDevicesSorted() {
-				@deviceView(properties, device)
 			}
 		</div>
 	}
