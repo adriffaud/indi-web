@@ -1,7 +1,17 @@
 package indiclient
 
+type EventType uint8
+
+const (
+	Add EventType = iota
+	Update
+	Delete
+)
+
 type Event struct {
-	Message string
+	EventType EventType
+	Property  Property
+	Message   string
 }
 
 type Observer interface {

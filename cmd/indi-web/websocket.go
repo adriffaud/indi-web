@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 
@@ -13,7 +14,12 @@ type Websocket struct {
 }
 
 func (ws Websocket) OnNotify(e indiclient.Event) {
-	ws.socket.WriteMessage(websocket.TextMessage, []byte(e.Message))
+	js, err := json.Marshal(e)
+	if err != nil {
+		slog.Error("could not serialize event", "error", err)
+	}
+
+	ws.socket.WriteMessage(websocket.TextMessage, js)
 }
 
 func (app *application) websocket(w http.ResponseWriter, r *http.Request) {

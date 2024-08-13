@@ -168,8 +168,13 @@ func (c *Client) addToProperties(property Property) {
 
 func (c *Client) delFromProperties(device, name string) {
 	slog.Debug("🚮 Deleting property", "device", device, "name", name)
-	c.Notify(Event{Message: fmt.Sprintf("Deleting property %s %s", device, name)})
 	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == device && p.Name == name })
+
+	c.Notify(Event{
+		EventType: Delete,
+		Message:   fmt.Sprintf("deleting property %s %s", device, name),
+	})
+
 	if propIdx >= 0 {
 		c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)
 	}
@@ -181,7 +186,6 @@ func (c *Client) updatePropertyValues(property Property) {
 		panic("trying to update unexisting property")
 	}
 
-	c.Notify(Event{Message: fmt.Sprintf("Updating property %s %s", property.Device, property.Name)})
 	prop := &c.Properties[propIdx]
 	prop.State = property.State
 	prop.Timestamp = property.Timestamp
@@ -190,6 +194,12 @@ func (c *Client) updatePropertyValues(property Property) {
 		oldValueIdx := slices.IndexFunc(prop.Values, func(v Value) bool { return v.Name == newValue.Name })
 		prop.Values[oldValueIdx].Value = newValue.Value
 	}
+
+	c.Notify(Event{
+		EventType: Update,
+		Property:  *prop,
+		Message:   fmt.Sprintf("updating %s %s", prop.Device, prop.Name),
+	})
 }
 
 func (c *Client) Register(o Observer) {
