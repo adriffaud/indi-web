@@ -79,7 +79,7 @@ live/server:
 	--misc.clean_on_exit true
 
 live/tailwind:
-	npx tailwindcss -i ./input.css -o assets/styles.css --watch
+	npx tailwindcss -i ./input.css -o assets/tailwind.css --watch
 
 live/sync_assets:
 	go run github.com/cosmtrek/air@v1.51.0 \
