@@ -4,7 +4,7 @@ for (let i = 0; i < buttons.length; i++) {
   buttons[i].addEventListener("click", async (evt) => await fetch("/indi/action", { method: "POST", body: JSON.stringify(evt.target.dataset) }));
 }
 
-window.addEventListener("load", (evt) => {
+window.addEventListener("load", () => {
   const output = document.getElementById("output");
 
   let ws;
@@ -18,10 +18,10 @@ window.addEventListener("load", (evt) => {
 
   ws = new WebSocket("ws://localhost:8080/ws");
   ws.onopen = () => {
-    print("OPEN");
+    print("WS OPEN");
   };
   ws.onclose = () => {
-    print("CLOSE");
+    print("WS CLOSE");
     ws = null;
   }
   ws.onmessage = (evt) => {
