@@ -123,23 +123,23 @@ func (c *Client) listen(reader io.Reader) {
 				}
 			case "delProperty":
 				c.delFromProperties(attrs["device"], attrs["name"])
-			case "setNumberVector":
+			case "setNumberVector", "setSwitchVector":
 				property = Property{
 					Device:    attrs["device"],
 					Name:      attrs["name"],
 					State:     attrs["state"],
 					Timestamp: attrs["timestamp"],
 				}
-			case "oneNumber":
+			case "oneNumber", "oneSwitch":
 				attrs := make(map[string]string)
 				for _, attr := range se.Attr {
 					attrs[attr.Name.Local] = attr.Value
 				}
-				value = Value{Name: attrs["name"]}
+				value = Value{Name: attrs["name"], Label: attrs["label"]}
 			case "message":
 				slog.Debug("MESSAGE", "message", se)
 			default:
-				slog.Warn("Unhandled data type", "type", se.Name.Local)
+				slog.Warn("Unhandled data type", "type", se.Name.Local, "raw", se)
 			}
 		case xml.CharData:
 			value.Value = string(se)
@@ -147,9 +147,9 @@ func (c *Client) listen(reader io.Reader) {
 			switch se.Name.Local {
 			case "defNumberVector", "defSwitchVector", "defTextVector":
 				c.addToProperties(property)
-			case "defNumber", "defSwitch", "defText", "oneNumber":
+			case "defNumber", "defSwitch", "defText", "oneNumber", "oneSwitch":
 				property.Values = append(property.Values, value)
-			case "setNumberVector":
+			case "setNumberVector", "setSwitchVector":
 				c.updatePropertyValues(property)
 			}
 		default:
@@ -183,8 +183,7 @@ func (c *Client) updatePropertyValues(property Property) {
 	prop.Timestamp = property.Timestamp
 
 	for _, newValue := range property.Values {
-		valueIdx := slices.IndexFunc(prop.Values, func(v Value) bool { return v.Name == newValue.Name })
-		prop.Values = append(prop.Values[:valueIdx], prop.Values[valueIdx+1:]...)
-		prop.Values = append(prop.Values, newValue)
+		oldValueIdx := slices.IndexFunc(prop.Values, func(v Value) bool { return v.Name == newValue.Name })
+		prop.Values[oldValueIdx].Value = newValue.Value
 	}
 }

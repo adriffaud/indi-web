@@ -202,39 +202,73 @@ func TestDelProperty(t *testing.T) {
 }
 
 func TestSetPropertyValues(t *testing.T) {
-	numberProp := Property{
-		Device:    "Telescope Simulator",
-		Name:      "EQUATORIAL_EOD_COORD",
-		State:     "Idle",
-		Timestamp: "2024-05-16T12:40:10",
-		Values:    []Value{{Name: "RA", Value: "0"}, {Name: "DEC", Value: "0"}},
+	tests := []struct {
+		property Property
+		expected Property
+		element  string
+	}{
+		{
+			Property{
+				Device:    "Telescope Simulator",
+				Name:      "EQUATORIAL_EOD_COORD",
+				State:     "Idle",
+				Timestamp: "2024-05-16T12:40:10",
+				Values:    []Value{{Name: "RA", Value: "0"}, {Name: "DEC", Value: "0"}},
+			},
+			Property{
+				Device:    "Telescope Simulator",
+				Name:      "EQUATORIAL_EOD_COORD",
+				State:     "Idle",
+				Timestamp: "2024-05-16T12:48:10",
+				Values:    []Value{{Name: "RA", Value: "22.451127260193981527"}, {Name: "DEC", Value: "90"}},
+			},
+			`
+			<setNumberVector device="Telescope Simulator" name="EQUATORIAL_EOD_COORD" state="Idle" timeout="60" timestamp="2024-05-16T12:48:10">
+				<oneNumber name="RA">
+					22.451127260193981527
+				</oneNumber>
+				<oneNumber name="DEC">
+					90
+				</oneNumber>
+			</setNumberVector>
+			`,
+		},
+		{
+			Property{
+				Device:    "Telescope Simulator",
+				Name:      "CONNECTION",
+				State:     "Idle",
+				Timestamp: "2024-05-16T12:40:10",
+				Values:    []Value{{Name: "CONNECT", Label: "Connect", Value: "Off"}, {Name: "DISCONNECT", Label: "Disconnect", Value: "On"}},
+			},
+			Property{
+				Device:    "Telescope Simulator",
+				Name:      "CONNECTION",
+				State:     "Idle",
+				Timestamp: "2024-05-16T12:48:10",
+				Values:    []Value{{Name: "CONNECT", Label: "Connect", Value: "On"}, {Name: "DISCONNECT", Label: "Disconnect", Value: "Off"}},
+			},
+			`
+			<setSwitchVector device="Telescope Simulator" name="CONNECTION" state="Idle" timeout="60" timestamp="2024-05-16T12:48:10">
+				<oneSwitch name="CONNECT">
+					On
+				</oneSwitch>
+				<oneSwitch name="DISCONNECT" label="Disconnect">
+					Off
+				</oneSwitch>
+			</setSwitchVector>
+			`,
+		},
 	}
 
-	properties := []Property{numberProp}
-	client := &Client{Properties: properties}
-
-	elements := `
-	<setNumberVector device="Telescope Simulator" name="EQUATORIAL_EOD_COORD" state="Idle" timeout="60" timestamp="2024-05-16T12:48:10">
-		<oneNumber name="RA">
-			22.451127260193981527
-		</oneNumber>
-		<oneNumber name="DEC">
-			90
-		</oneNumber>
-	</setNumberVector>
-	`
-	elementsReader := strings.NewReader(elements)
-	client.listen(elementsReader)
-
-	expected := Property{
-		Device:    "Telescope Simulator",
-		Name:      "EQUATORIAL_EOD_COORD",
-		State:     "Idle",
-		Timestamp: "2024-05-16T12:48:10",
-		Values:    []Value{{Name: "RA", Value: "22.451127260193981527"}, {Name: "DEC", Value: "90"}},
+	for _, tt := range tests {
+		client := &Client{Properties: []Property{tt.property}}
+		elementsReader := strings.NewReader(tt.element)
+		client.listen(elementsReader)
+		assert.Equal(t, 1, len(client.Properties))
+		assert.Equal(t, tt.expected, client.Properties[0])
 	}
-	assert.Equal(t, 1, len(client.Properties))
-	assert.Equal(t, expected, client.Properties[0])
+
 }
 
 func TestSetUnexistingPropertyValues(t *testing.T) {
