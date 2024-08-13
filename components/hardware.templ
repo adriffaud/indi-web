@@ -104,6 +104,7 @@ templ RawHardware(properties indiclient.Properties) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 		</head>
 		<body>
+			<div id="output"></div>
 			for _, device := range properties.GetDevicesSorted() {
 				@deviceView(properties, device)
 			}

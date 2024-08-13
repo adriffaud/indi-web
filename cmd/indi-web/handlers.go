@@ -10,18 +10,17 @@ import (
 	"github.com/adriffaud/indi-web/components"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
-	"github.com/julienschmidt/httprouter"
 )
 
-func (app *application) index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) index(w http.ResponseWriter, r *http.Request) {
 	components.Main().Render(r.Context(), w)
 }
 
-func (app *application) hardware(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) hardware(w http.ResponseWriter, r *http.Request) {
 	components.RawHardware(app.indiClient.Properties).Render(r.Context(), w)
 }
 
-func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) setup(w http.ResponseWriter, r *http.Request) {
 	driverGroups, err := indiserver.ListDrivers()
 	if err != nil {
 		slog.Error("could not get INDI drivers", "error", err)
@@ -39,7 +38,7 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request, _ httprout
 	components.Setup(driverGroups, devices).Render(r.Context(), w)
 }
 
-func (app *application) indiAction(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) indiAction(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Unable to read request body", http.StatusBadRequest)
@@ -64,7 +63,7 @@ func (app *application) indiAction(w http.ResponseWriter, r *http.Request, _ htt
 	w.WriteHeader(http.StatusOK)
 }
 
-func (app *application) INDIServer(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (app *application) INDIServer(w http.ResponseWriter, r *http.Request) {
 	slog.Debug("Handling INDI server setup")
 
 	if indiserver.IsRunning() {

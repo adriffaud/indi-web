@@ -10,6 +10,7 @@ import (
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	"github.com/gorilla/websocket"
 )
 
 type application struct {
@@ -17,8 +18,9 @@ type application struct {
 }
 
 var (
-	host string
-	port int
+	host     string
+	port     int
+	upgrader = websocket.Upgrader{}
 )
 
 func main() {

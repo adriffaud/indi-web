@@ -1,22 +1,21 @@
 package main
 
-import (
-	"net/http"
-
-	"github.com/julienschmidt/httprouter"
-)
+import "net/http"
 
 func (app application) routes() http.Handler {
-	router := httprouter.New()
+	router := http.NewServeMux()
 
-	router.ServeFiles("/static/*filepath", http.Dir("assets"))
+	fileServer := http.FileServer(http.Dir("assets"))
+	router.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
-	router.GET("/", app.index)
-	router.POST("/", app.index)
-	router.GET("/hardware", app.hardware)
-	router.POST("/indi/action", app.indiAction)
-	router.GET("/setup", app.setup)
-	router.POST("/setup", app.INDIServer)
+	router.HandleFunc("GET /", app.index)
+	router.HandleFunc("POST /", app.index)
+	router.HandleFunc("GET /hardware", app.hardware)
+	router.HandleFunc("POST /indi/action", app.indiAction)
+	router.HandleFunc("GET /setup", app.setup)
+	router.HandleFunc("POST /setup", app.INDIServer)
+
+	router.HandleFunc("GET /ws", app.websocket)
 
 	return app.checkServerStarted(router)
 }
