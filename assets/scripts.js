@@ -25,7 +25,7 @@ window.addEventListener("load", () => {
     ws = null;
   }
   ws.onmessage = (evt) => {
-    print("RESPONSE: " + evt.data);
+    print("[" + new Date() + "] RESPONSE: " + evt.data);
   }
   ws.onerror = (evt) => {
     print("ERROR: " + evt.data);

@@ -13,6 +13,7 @@ import (
 type Client struct {
 	conn       net.Conn
 	Properties Properties
+	observers  map[Observer]struct{}
 }
 
 func New(address string) (*Client, error) {
@@ -24,6 +25,7 @@ func New(address string) (*Client, error) {
 	client := &Client{
 		conn:       conn,
 		Properties: make([]Property, 0),
+		observers:  map[Observer]struct{}{},
 	}
 
 	go client.listen(conn)
@@ -52,7 +54,6 @@ func (c *Client) NewPropertyValue(selector PropertySelector) error {
 	}
 
 	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">%s</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.Value, newValue)
-	slog.Debug("NewPropertyValue", "selector", selector, "property", property, "xml", xml)
 
 	return c.sendMessage(xml)
 }
@@ -161,11 +162,13 @@ func (c *Client) listen(reader io.Reader) {
 func (c *Client) addToProperties(property Property) {
 	c.delFromProperties(property.Device, property.Name)
 	slog.Debug("➕ Adding property", "property", property)
+	c.Notify(Event{Message: fmt.Sprintf("Adding property %s %s", property.Device, property.Name)})
 	c.Properties = append(c.Properties, property)
 }
 
 func (c *Client) delFromProperties(device, name string) {
 	slog.Debug("🚮 Deleting property", "device", device, "name", name)
+	c.Notify(Event{Message: fmt.Sprintf("Deleting property %s %s", device, name)})
 	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == device && p.Name == name })
 	if propIdx >= 0 {
 		c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)
@@ -178,6 +181,7 @@ func (c *Client) updatePropertyValues(property Property) {
 		panic("trying to update unexisting property")
 	}
 
+	c.Notify(Event{Message: fmt.Sprintf("Updating property %s %s", property.Device, property.Name)})
 	prop := &c.Properties[propIdx]
 	prop.State = property.State
 	prop.Timestamp = property.Timestamp
@@ -185,5 +189,21 @@ func (c *Client) updatePropertyValues(property Property) {
 	for _, newValue := range property.Values {
 		oldValueIdx := slices.IndexFunc(prop.Values, func(v Value) bool { return v.Name == newValue.Name })
 		prop.Values[oldValueIdx].Value = newValue.Value
+	}
+}
+
+func (c *Client) Register(o Observer) {
+	slog.Debug("Adding observer", "observer", o)
+	c.observers[o] = struct{}{}
+}
+
+func (c *Client) Unregister(o Observer) {
+	slog.Debug("Removing observer", "observer", o)
+	delete(c.observers, o)
+}
+
+func (c *Client) Notify(e Event) {
+	for o := range c.observers {
+		o.OnNotify(e)
 	}
 }

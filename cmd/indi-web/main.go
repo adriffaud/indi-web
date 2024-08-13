@@ -20,7 +20,11 @@ type application struct {
 var (
 	host     string
 	port     int
-	upgrader = websocket.Upgrader{}
+	upgrader = websocket.Upgrader{
+		// TODO: REMOVE ME
+		// Do not check origin (only in dev for Air autoreload proxy)
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
 )
 
 func main() {
@@ -33,6 +37,7 @@ func main() {
 
 	app := &application{}
 
+	// TODO: REMOVE ME
 	// TEMP AUTOSTART
 	err := indiserver.Start([]string{"indi_simulator_telescope"})
 	if err != nil {
