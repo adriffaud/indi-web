@@ -65,7 +65,6 @@ func (p Properties) GetDeviceGroupsSorted(device string) []string {
 		}
 	}
 
-	sort.Strings(groups)
 	return groups
 }
 
