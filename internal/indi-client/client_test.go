@@ -1,11 +1,19 @@
 package indiclient
 
 import (
+	"log/slog"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestMain(m *testing.M) {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	slog.SetDefault(logger)
+	os.Exit(m.Run())
+}
 
 func TestDefProperty(t *testing.T) {
 	client := &Client{Properties: make([]Property, 0)}
