@@ -203,12 +203,12 @@ func (c *Client) updatePropertyValues(property Property) {
 }
 
 func (c *Client) Register(o Observer) {
-	slog.Debug("Adding observer", "observer", o)
+	slog.Debug("Adding observer", "observer", o, "count", len(c.observers))
 	c.observers[o] = struct{}{}
 }
 
 func (c *Client) Unregister(o Observer) {
-	slog.Debug("Removing observer", "observer", o)
+	slog.Debug("Removing observer", "observer", o, "count", len(c.observers))
 	delete(c.observers, o)
 }
 

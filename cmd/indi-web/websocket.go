@@ -32,6 +32,7 @@ func (app *application) websocket(w http.ResponseWriter, r *http.Request) {
 
 	ws := Websocket{socket: c}
 	app.indiClient.Register(ws)
+	defer app.indiClient.Unregister(ws)
 
 	for {
 		mt, message, err := c.ReadMessage()
