@@ -43,6 +43,7 @@ func (app *application) indiAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Add form validation and struct mapping
 	selector := indiclient.PropertySelector{
 		Device:    r.FormValue("device"),
 		Name:      r.FormValue("name"),

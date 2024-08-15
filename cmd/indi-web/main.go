@@ -10,7 +10,6 @@ import (
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
-	"github.com/gorilla/websocket"
 )
 
 type application struct {
@@ -18,13 +17,8 @@ type application struct {
 }
 
 var (
-	host     string
-	port     int
-	upgrader = websocket.Upgrader{
-		// TODO: REMOVE ME
-		// Do not check origin (only in dev for Air autoreload proxy)
-		CheckOrigin: func(r *http.Request) bool { return true },
-	}
+	host string
+	port int
 )
 
 func main() {

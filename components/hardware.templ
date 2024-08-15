@@ -103,14 +103,14 @@ templ RawHardware(properties indiclient.Properties) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<script src="static/htmx.min.js"></script>
-			<script src="static/ws.js"></script>
+			<script src="static/sse.js"></script>
 		</head>
 		<body>
-			<div id="output" style="max-height: 30vh; overflow-y: scroll; border: 1px solid black;"></div>
-			for _, device := range properties.GetDevicesSorted() {
-				@deviceView(properties, device)
-			}
-			<script src="static/scripts.js"></script>
+			<div hx-ext="sse" sse-connect="/sse">
+				for _, device := range properties.GetDevicesSorted() {
+					@deviceView(properties, device)
+				}
+			</div>
 		</body>
 	</html>
 }
