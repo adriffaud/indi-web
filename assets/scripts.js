@@ -1,9 +1,3 @@
-const buttons = document.querySelectorAll("button");
-
-for (let i = 0; i < buttons.length; i++) {
-  buttons[i].addEventListener("click", async (evt) => await fetch("/indi/action", { method: "POST", body: JSON.stringify(evt.target.dataset) }));
-}
-
 window.addEventListener("load", () => {
   const output = document.getElementById("output");
 

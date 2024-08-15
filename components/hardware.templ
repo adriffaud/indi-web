@@ -37,9 +37,9 @@ templ propertyValues(property indiclient.Property) {
 				<td>
 					for _, value := range property.Values {
 						<button
-							data-device={ property.Device }
-							data-name={ property.Name }
-							data-value={ value.Name }
+							hx-post="/indi/action"
+							hx-swap="none"
+							hx-vals={ fmt.Sprintf("{\"device\": \"%s\", \"name\": \"%s\", \"valueName\": \"%s\"}", property.Device, property.Name, value.Name) }
 							type="button"
 							if property.Perm=="ro" || value.Value == "On" {
 								disabled
@@ -102,6 +102,8 @@ templ RawHardware(properties indiclient.Properties) {
 			<title>INDI Air</title>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<script src="static/htmx.min.js"></script>
+			<script src="static/ws.js"></script>
 		</head>
 		<body>
 			<div id="output" style="max-height: 30vh; overflow-y: scroll; border: 1px solid black;"></div>

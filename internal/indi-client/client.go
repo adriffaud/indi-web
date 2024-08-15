@@ -46,14 +46,14 @@ func (c *Client) NewPropertyValue(selector PropertySelector) error {
 
 	var newValue string
 	for _, value := range property.Values {
-		if value.Name == selector.Value && value.Value == "Off" {
+		if value.Name == selector.ValueName && value.Value == "Off" {
 			newValue = "On"
-		} else if value.Name == selector.Value && value.Value == "On" {
+		} else if value.Name == selector.ValueName && value.Value == "On" {
 			newValue = "Off"
 		}
 	}
 
-	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">%s</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.Value, newValue)
+	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">%s</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.ValueName, newValue)
 
 	return c.sendMessage(xml)
 }
@@ -203,12 +203,12 @@ func (c *Client) updatePropertyValues(property Property) {
 }
 
 func (c *Client) Register(o Observer) {
-	slog.Debug("Adding observer", "observer", o, "count", len(c.observers))
+	slog.Debug("Adding observer", "count", len(c.observers))
 	c.observers[o] = struct{}{}
 }
 
 func (c *Client) Unregister(o Observer) {
-	slog.Debug("Removing observer", "observer", o, "count", len(c.observers))
+	slog.Debug("Removing observer", "count", len(c.observers))
 	delete(c.observers, o)
 }
 

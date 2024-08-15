@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -39,18 +37,16 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) indiAction(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
+	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "Unable to read request body", http.StatusBadRequest)
+		http.Error(w, "unable to parse form", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
-	var selector indiclient.PropertySelector
-	err = json.Unmarshal(body, &selector)
-	if err != nil {
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
-		return
+	selector := indiclient.PropertySelector{
+		Device:    r.FormValue("device"),
+		Name:      r.FormValue("name"),
+		ValueName: r.FormValue("valueName"),
 	}
 
 	slog.Debug("Sending connection property", "selector", selector)
