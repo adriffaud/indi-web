@@ -1,13 +1,18 @@
-# INDI Web
+# IndiEx
 
-This is an attempt to write a web application to control astronomical equipment from a smartphone/tablet without the need to use a computer or remote desktop on the equipment controller.
+To start your Phoenix server:
 
-## Development
+  * Run `mix setup` to install and setup dependencies
+  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
-Simply run
+Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-```
-make run
-```
+Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
-This will download [Air](https://github.com/cosmtrek/air) which will watch and restart the server on code modification and [Templ](https://templ.guide) which generates Go code from templ files.
+## Learn more
+
+  * Official website: https://www.phoenixframework.org/
+  * Guides: https://hexdocs.pm/phoenix/overview.html
+  * Docs: https://hexdocs.pm/phoenix
+  * Forum: https://elixirforum.com/c/phoenix-forum
+  * Source: https://github.com/phoenixframework/phoenix
