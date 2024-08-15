@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 )
@@ -38,9 +37,8 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 			slog.Debug("SSE client disconnected", "address", r.RemoteAddr)
 			app.indiClient.Unregister(client)
 			return
-		case <-client.eventChan:
-			msg := time.Now().Format(time.TimeOnly)
-			fmt.Fprintf(w, "data: %s\n\n", msg)
+		case evt := <-client.eventChan:
+			fmt.Fprintf(w, "data: %v\n\n", evt)
 			w.(http.Flusher).Flush()
 		}
 	}
