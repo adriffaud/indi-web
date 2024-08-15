@@ -15,6 +15,7 @@ func (app application) routes() http.Handler {
 	router.HandleFunc("GET /setup", app.setup)
 	router.HandleFunc("POST /setup", app.INDIServer)
 
+	router.HandleFunc("GET /ws", app.websocket)
 	router.HandleFunc("GET /sse", app.sse)
 
 	return app.checkServerStarted(router)

@@ -10,6 +10,7 @@ import (
 
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	"github.com/gorilla/websocket"
 )
 
 type application struct {
@@ -17,8 +18,11 @@ type application struct {
 }
 
 var (
-	host string
-	port int
+	host     string
+	port     int
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
 )
 
 func main() {
@@ -53,10 +57,8 @@ func main() {
 	// TEMP AUTOSTART
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", host, port),
-		Handler:      app.routes(),
-		ReadTimeout:  time.Second * 10,
-		WriteTimeout: time.Second * 10,
+		Addr:    fmt.Sprintf("%s:%d", host, port),
+		Handler: app.routes(),
 	}
 
 	slog.Info("starting server", "addr", server.Addr)

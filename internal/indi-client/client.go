@@ -55,6 +55,8 @@ func (c *Client) NewPropertyValue(selector PropertySelector) error {
 
 	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">%s</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.ValueName, newValue)
 
+	slog.Debug("sending new property value", "selector", selector, "xml", xml)
+
 	return c.sendMessage(xml)
 }
 
@@ -203,13 +205,13 @@ func (c *Client) updatePropertyValues(property Property) {
 }
 
 func (c *Client) Register(o Observer) {
-	slog.Debug("Adding observer", "count", len(c.observers))
 	c.observers[o] = struct{}{}
+	slog.Debug("Adding observer", "count", len(c.observers))
 }
 
 func (c *Client) Unregister(o Observer) {
-	slog.Debug("Removing observer", "count", len(c.observers))
 	delete(c.observers, o)
+	slog.Debug("Removing observer", "count", len(c.observers))
 }
 
 func (c *Client) Notify(e Event) {
