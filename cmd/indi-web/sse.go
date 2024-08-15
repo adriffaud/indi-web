@@ -38,7 +38,8 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 			app.indiClient.Unregister(client)
 			return
 		case evt := <-client.eventChan:
-			fmt.Fprintf(w, "data: %v\n\n", evt)
+			element := fmt.Sprintf("<div id=\"%s\"><h5>%s - %s</h5><p>%+v</p></div>", evt.Property.Device, evt.Property.Group, evt.Property.Name, evt.Property.Values)
+			fmt.Fprintf(w, "data: %s\n\n", element)
 			w.(http.Flusher).Flush()
 		}
 	}

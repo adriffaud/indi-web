@@ -106,11 +106,14 @@ templ RawHardware(properties indiclient.Properties) {
 			<script src="static/sse.js"></script>
 		</head>
 		<body>
-			<div hx-ext="sse" sse-connect="/sse">
-				for _, device := range properties.GetDevicesSorted() {
-					@deviceView(properties, device)
-				}
+			<div>
+				<h4>Server events</h4>
+				<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
 			</div>
+			<hr/>
+			for _, device := range properties.GetDevicesSorted() {
+				@deviceView(properties, device)
+			}
 		</body>
 	</html>
 }
