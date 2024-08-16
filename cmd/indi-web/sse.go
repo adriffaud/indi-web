@@ -44,12 +44,23 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			tmpl, err := templ.ToGoHTML(r.Context(), components.PropertyValues(evt.Property))
-			if err != nil {
-				slog.Error("failed to convert to HTML", "error", err)
+			switch evt.EventType {
+			case indiclient.Add, indiclient.Delete:
+				tmpl, err := templ.ToGoHTML(r.Context(), components.DeviceView(app.indiClient.Properties, evt.Property.Device))
+				if err != nil {
+					slog.Error("failed to convert to HTML", "error", err)
+				}
+
+				fmt.Fprintf(w, "data: %s\n\n", tmpl)
+			case indiclient.Update:
+				tmpl, err := templ.ToGoHTML(r.Context(), components.PropertyValues(evt.Property))
+				if err != nil {
+					slog.Error("failed to convert to HTML", "error", err)
+				}
+
+				fmt.Fprintf(w, "data: %s\n\n", tmpl)
 			}
 
-			fmt.Fprintf(w, "data: %s\n\n", tmpl)
 			w.(http.Flusher).Flush()
 		}
 	}

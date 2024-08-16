@@ -163,23 +163,31 @@ func (c *Client) listen(reader io.Reader) {
 
 func (c *Client) addToProperties(property Property) {
 	c.delFromProperties(property.Device, property.Name)
-	slog.Debug("➕ Adding property", "property", property)
-	c.Notify(Event{Message: fmt.Sprintf("Adding property %s %s", property.Device, property.Name)})
+	slog.Debug("adding property", "property", property)
 	c.Properties = append(c.Properties, property)
+	c.Notify(Event{
+		EventType: Add,
+		Message:   fmt.Sprintf("Adding property %s %s", property.Device, property.Name),
+		Property:  property,
+	})
 }
 
 func (c *Client) delFromProperties(device, name string) {
-	slog.Debug("🚮 Deleting property", "device", device, "name", name)
+	slog.Debug("deleting property", "device", device, "name", name)
 	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == device && p.Name == name })
 
+	if propIdx < 0 {
+		return
+	}
+
+	prop := c.Properties.FindProperty(PropertySelector{Device: device, Name: name})
 	c.Notify(Event{
 		EventType: Delete,
 		Message:   fmt.Sprintf("deleting property %s %s", device, name),
+		Property:  *prop,
 	})
 
-	if propIdx >= 0 {
-		c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)
-	}
+	c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)
 }
 
 func (c *Client) updatePropertyValues(property Property) {

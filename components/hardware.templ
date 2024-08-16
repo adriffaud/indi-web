@@ -6,11 +6,14 @@ import (
 	"strings"
 )
 
+func deviceID(device string) string {
+	return strings.ReplaceAll(strings.ToLower(device), " ", "_")
+}
+
 func uniquePropertyID(property indiclient.Property) string {
-	device := strings.ReplaceAll(strings.ToLower(property.Device), " ", "_")
 	group := strings.ReplaceAll(strings.ToLower(property.Group), " ", "_")
 	name := strings.ToLower(property.Name)
-	return fmt.Sprintf("%s_%s_%s", device, group, name)
+	return fmt.Sprintf("%s_%s_%s", deviceID(property.Device), group, name)
 }
 
 func uniqueValueName(property indiclient.Property, key string) string {
@@ -74,12 +77,8 @@ templ groupView(properties indiclient.Properties, device string) {
 	}
 }
 
-func deviceId(device string) string {
-	return strings.ReplaceAll(strings.ToLower(device), " ", "-")
-}
-
-templ deviceView(properties indiclient.Properties, device string) {
-	<table style="border: 2px solid black; border-collapse: collapse;">
+templ DeviceView(properties indiclient.Properties, device string) {
+	<table id={ deviceID(device) } hx-swap-oob="true" style="border: 2px solid black; border-collapse: collapse;">
 		<thead>
 			<tr>
 				<th colspan="6" style="border: 1px solid black; background-color: gray;">{ device }</th>
@@ -95,7 +94,7 @@ templ Hardware(properties indiclient.Properties) {
 	@Root() {
 		<div>
 			for _, device := range properties.GetDevicesSorted() {
-				@deviceView(properties, device)
+				@DeviceView(properties, device)
 			}
 		</div>
 	}
@@ -110,11 +109,12 @@ templ RawHardware(properties indiclient.Properties) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<script src="static/htmx.min.js"></script>
 			<script src="static/sse.js"></script>
+			<script defer src="static/alpine.js"></script>
 		</head>
 		<body>
 			<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
 			for _, device := range properties.GetDevicesSorted() {
-				@deviceView(properties, device)
+				@DeviceView(properties, device)
 			}
 		</body>
 	</html>
