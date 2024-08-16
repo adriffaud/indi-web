@@ -6,11 +6,13 @@ const (
 	Add EventType = iota
 	Update
 	Delete
+	Message
 )
 
 type Event struct {
 	EventType EventType
 	Property  Property
+	Message   string
 }
 
 type Observer interface {

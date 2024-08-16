@@ -40,10 +40,6 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 			app.indiClient.Unregister(client)
 			return
 		case evt := <-client.eventChan:
-			if evt.Property.Device == "" {
-				break
-			}
-
 			switch evt.EventType {
 			case indiclient.Add, indiclient.Delete:
 				tmpl, err := templ.ToGoHTML(r.Context(), components.DeviceView(app.indiClient.Properties, evt.Property.Device))
@@ -59,6 +55,9 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 				}
 
 				fmt.Fprintf(w, "data: %s\n\n", tmpl)
+			case indiclient.Message:
+				msg := fmt.Sprintf("<div id=\"notifications\" hx-swap-oob=\"true\"><p>%s</p></div>", evt.Message)
+				fmt.Fprintf(w, "data: %s\n\n", msg)
 			}
 
 			w.(http.Flusher).Flush()

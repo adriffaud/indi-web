@@ -140,7 +140,11 @@ func (c *Client) listen(reader io.Reader) {
 				}
 				value = Value{Name: attrs["name"], Label: attrs["label"]}
 			case "message":
-				slog.Debug("MESSAGE", "message", se)
+				for _, attr := range se.Attr {
+					if attr.Name.Local == "message" {
+						c.Notify(Event{EventType: Message, Message: attr.Value})
+					}
+				}
 			default:
 				slog.Warn("Unhandled data type", "type", se.Name.Local, "raw", se)
 			}
