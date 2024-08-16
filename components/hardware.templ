@@ -6,24 +6,30 @@ import (
 	"strings"
 )
 
-func uniqueValueName(property indiclient.Property, name string) string {
+func uniquePropertyID(property indiclient.Property) string {
 	device := strings.ReplaceAll(strings.ToLower(property.Device), " ", "_")
-	group := strings.ToLower(property.Group)
+	group := strings.ReplaceAll(strings.ToLower(property.Group), " ", "_")
+	name := strings.ToLower(property.Name)
 	return fmt.Sprintf("%s_%s_%s", device, group, name)
 }
 
-templ propertyValues(property indiclient.Property) {
+func uniqueValueName(property indiclient.Property, key string) string {
+	key = strings.ToLower(key)
+	return fmt.Sprintf("%s_%s", uniquePropertyID(property), key)
+}
+
+templ PropertyValues(property indiclient.Property) {
 	switch property.Type {
 		case indiclient.Text, indiclient.Number:
 			for _, value := range property.Values {
-				<tr>
+				<tr id={ uniqueValueName(property, value.Name) } hx-swap-oob="true">
 					<td>
-						<label for={ uniqueValueName(property, value.Name) }>{ value.Label }</label>
+						<label for={ uniqueValueName(property, value.Name) + "_input" }>{ value.Label }</label>
 					</td>
 					<td>
 						<input
 							type="text"
-							id={ uniqueValueName(property, value.Name) }
+							id={ uniqueValueName(property, value.Name) + "_input" }
 							value={ value.Value }
 							if property.Perm=="ro" {
 								disabled
@@ -33,7 +39,7 @@ templ propertyValues(property indiclient.Property) {
 				</tr>
 			}
 		case indiclient.Switch:
-			<tr>
+			<tr id={ uniquePropertyID(property) } hx-swap-oob="true">
 				<td>
 					for _, value := range property.Values {
 						<button
@@ -63,7 +69,7 @@ templ groupView(properties indiclient.Properties, device string) {
 			<tr>
 				<td colspan="6" style="border: 1px solid black; background-color: cyan;">{ property.Label }</td>
 			</tr>
-			@propertyValues(property)
+			@PropertyValues(property)
 		}
 	}
 }
@@ -106,11 +112,7 @@ templ RawHardware(properties indiclient.Properties) {
 			<script src="static/sse.js"></script>
 		</head>
 		<body>
-			<div>
-				<h4>Server events</h4>
-				<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
-			</div>
-			<hr/>
+			<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
 			for _, device := range properties.GetDevicesSorted() {
 				@deviceView(properties, device)
 			}

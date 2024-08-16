@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/a-h/templ"
+	"github.com/adriffaud/indi-web/components"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 )
 
@@ -38,8 +40,16 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 			app.indiClient.Unregister(client)
 			return
 		case evt := <-client.eventChan:
-			element := fmt.Sprintf("<div id=\"%s\"><h5>%s - %s</h5><p>%+v</p></div>", evt.Property.Device, evt.Property.Group, evt.Property.Name, evt.Property.Values)
-			fmt.Fprintf(w, "data: %s\n\n", element)
+			if evt.Property.Device == "" {
+				break
+			}
+
+			tmpl, err := templ.ToGoHTML(r.Context(), components.PropertyValues(evt.Property))
+			if err != nil {
+				slog.Error("failed to convert to HTML", "error", err)
+			}
+
+			fmt.Fprintf(w, "data: %s\n\n", tmpl)
 			w.(http.Flusher).Flush()
 		}
 	}
