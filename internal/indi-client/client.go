@@ -165,11 +165,7 @@ func (c *Client) addToProperties(property Property) {
 	c.delFromProperties(property.Device, property.Name)
 	slog.Debug("adding property", "property", property)
 	c.Properties = append(c.Properties, property)
-	c.Notify(Event{
-		EventType: Add,
-		Message:   fmt.Sprintf("Adding property %s %s", property.Device, property.Name),
-		Property:  property,
-	})
+	c.Notify(Event{EventType: Add, Property: property})
 }
 
 func (c *Client) delFromProperties(device, name string) {
@@ -181,11 +177,7 @@ func (c *Client) delFromProperties(device, name string) {
 	}
 
 	prop := c.Properties.FindProperty(PropertySelector{Device: device, Name: name})
-	c.Notify(Event{
-		EventType: Delete,
-		Message:   fmt.Sprintf("deleting property %s %s", device, name),
-		Property:  *prop,
-	})
+	c.Notify(Event{EventType: Delete, Property: *prop})
 
 	c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)
 }
@@ -205,11 +197,7 @@ func (c *Client) updatePropertyValues(property Property) {
 		prop.Values[oldValueIdx].Value = newValue.Value
 	}
 
-	c.Notify(Event{
-		EventType: Update,
-		Property:  *prop,
-		Message:   fmt.Sprintf("updating %s %s", prop.Device, prop.Name),
-	})
+	c.Notify(Event{EventType: Update, Property: *prop})
 }
 
 func (c *Client) Register(o Observer) {

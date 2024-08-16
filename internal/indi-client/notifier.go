@@ -11,8 +11,6 @@ const (
 type Event struct {
 	EventType EventType
 	Property  Property
-	Message   string
-	Selector  PropertySelector
 }
 
 type Observer interface {

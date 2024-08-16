@@ -25,60 +25,54 @@ templ PropertyValues(property indiclient.Property) {
 	switch property.Type {
 		case indiclient.Text, indiclient.Number:
 			for _, value := range property.Values {
-				<tr id={ uniqueValueName(property, value.Name) } hx-swap-oob="true">
-					<td>
-						<label for={ uniqueValueName(property, value.Name) + "_input" }>{ value.Label }</label>
-					</td>
-					<td>
-						<input
-							type="text"
-							id={ uniqueValueName(property, value.Name) + "_input" }
-							value={ value.Value }
-							if property.Perm=="ro" {
-								disabled
-							}
-						/>
-					</td>
-				</tr>
+				<td id={ uniqueValueName(property, value.Name) } hx-swap-oob="true" style="display: flex; justify-content: space-between;">
+					<label for={ uniqueValueName(property, value.Name) + "_input" }>{ value.Label }</label>
+					<input
+						type="text"
+						id={ uniqueValueName(property, value.Name) + "_input" }
+						value={ value.Value }
+						if property.Perm=="ro" {
+							disabled
+						}
+					/>
+				</td>
 			}
 		case indiclient.Switch:
-			<tr id={ uniquePropertyID(property) } hx-swap-oob="true">
-				<td>
-					for _, value := range property.Values {
-						<button
-							hx-post="/indi/action"
-							hx-swap="none"
-							hx-vals={ fmt.Sprintf("{\"device\": \"%s\", \"name\": \"%s\", \"valueName\": \"%s\"}", property.Device, property.Name, value.Name) }
-							type="button"
-							if property.Perm=="ro" || value.Value == "On" {
-								disabled
-							}
-						>
-							{ value.Label }
-						</button>
-					}
-				</td>
-			</tr>
+			<td id={ uniquePropertyID(property) } hx-swap-oob="true" style="display: flex; justify-content: flex-end;">
+				for _, value := range property.Values {
+					<button
+						hx-post="/indi/action"
+						hx-swap="none"
+						hx-vals={ fmt.Sprintf("{\"device\": \"%s\", \"name\": \"%s\", \"valueName\": \"%s\"}", property.Device, property.Name, value.Name) }
+						type="button"
+						if property.Perm=="ro" || value.Value == "On" {
+							disabled
+						}
+					>
+						{ value.Label }
+					</button>
+				}
+			</td>
 	}
 }
 
 templ groupView(properties indiclient.Properties, device string) {
 	for _, group := range properties.GetDeviceGroupsSorted(device) {
 		<tr>
-			<th colspan="6" style="border: 1px solid black; background-color: yellow;">{ group }</th>
+			<th colspan="6" style="border: 1px solid black; background-color: cyan;">{ group }</th>
 		</tr>
 		for _, property := range properties.GetPropertiesForDeviceGroup(device,
 	group) {
-			<tr>
-				<td colspan="6" style="border: 1px solid black; background-color: cyan;">{ property.Label }</td>
+			<tr style="border: 1px solid black;">
+				<td style="border: 1px solid black; font-weight: bold;">{ property.Label }</td>
+				@PropertyValues(property)
 			</tr>
-			@PropertyValues(property)
 		}
 	}
 }
 
 templ DeviceView(properties indiclient.Properties, device string) {
-	<table id={ deviceID(device) } hx-swap-oob="true" style="border: 2px solid black; border-collapse: collapse;">
+	<table id={ deviceID(device) } hx-swap-oob="true" style="border: 2px solid black; border-collapse: collapse; width: calc(100vw - 26px);">
 		<thead>
 			<tr>
 				<th colspan="6" style="border: 1px solid black; background-color: gray;">{ device }</th>
