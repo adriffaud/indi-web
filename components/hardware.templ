@@ -25,7 +25,7 @@ templ PropertyValues(property indiclient.Property) {
 	switch property.Type {
 		case indiclient.Text, indiclient.Number:
 			for _, value := range property.Values {
-				<td id={ uniqueValueName(property, value.Name) } hx-swap-oob="true" style="display: flex; justify-content: space-between;">
+				<td id={ uniqueValueName(property, value.Name) } hx-swap-oob="true" style="display: flex; justify-content: space-between; padding: 0.4em 0.8em;">
 					<label for={ uniqueValueName(property, value.Name) + "_input" }>{ value.Label }</label>
 					<input
 						type="text"
@@ -38,7 +38,7 @@ templ PropertyValues(property indiclient.Property) {
 				</td>
 			}
 		case indiclient.Switch:
-			<td id={ uniquePropertyID(property) } hx-swap-oob="true" style="display: flex; justify-content: flex-end;">
+			<td id={ uniquePropertyID(property) } hx-swap-oob="true" style="display: flex; justify-content: flex-end; padding: 0.4em 0.8em;">
 				for _, value := range property.Values {
 					<button
 						hx-post="/indi/action"
