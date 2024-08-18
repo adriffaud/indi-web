@@ -25,91 +25,56 @@ templ PropertyValues(property indiclient.Property) {
 	switch property.Type {
 		case indiclient.Text, indiclient.Number:
 			for _, value := range property.Values {
-				<td id={ uniqueValueName(property, value.Name) } hx-swap-oob="true" style="display: flex; justify-content: space-between; padding: 0.4em 0.8em;">
-					<label for={ uniqueValueName(property, value.Name) + "_input" }>{ value.Label }</label>
-					<input
-						type="text"
-						id={ uniqueValueName(property, value.Name) + "_input" }
-						value={ value.Value }
-						if property.Perm=="ro" {
-							disabled
-						}
-					/>
-				</td>
+				<div id={ uniqueValueName(property, value.Name) } hx-swap-oob="true" class="py-2 flex flex-col gap-2">
+					@label(uniqueValueName(property, value.Name)+"_input", value.Label)
+					@textInput(uniqueValueName(property, value.Name)+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", property.Perm == "ro")})
+				</div>
 			}
 		case indiclient.Switch:
-			<td id={ uniquePropertyID(property) } hx-swap-oob="true" style="display: flex; justify-content: flex-end; padding: 0.4em 0.8em;">
+			<span id={ uniquePropertyID(property) } hx-swap-oob="true" class="flex flex-wrap md:flex-nowrap gap-2">
 				for _, value := range property.Values {
-					<button
-						hx-post="/indi/action"
-						hx-swap="none"
-						hx-vals={ fmt.Sprintf("{\"device\": \"%s\", \"name\": \"%s\", \"valueName\": \"%s\"}", property.Device, property.Name, value.Name) }
-						type="button"
-						if property.Perm=="ro" || value.Value == "On" {
-							disabled
-						}
-					>
-						{ value.Label }
-					</button>
+					@button(
+						"button",
+						value.Label,
+						templ.Attributes{
+							"hx-post":  "/indi/action",
+							"hx-swap":  "none",
+							"hx-vals":  fmt.Sprintf("{\"device\": \"%s\", \"name\": \"%s\", \"valueName\": \"%s\"}", property.Device, property.Name, value.Name),
+							"disabled": templ.KV("true", property.Perm == "ro" || value.Value == "On"),
+						})
 				}
-			</td>
+			</span>
 	}
 }
 
 templ groupView(properties indiclient.Properties, device string) {
 	for _, group := range properties.GetDeviceGroupsSorted(device) {
-		<tr>
-			<th colspan="6" style="border: 1px solid black; background-color: cyan;">{ group }</th>
-		</tr>
+		<span class="col-span-3 justify-self-center text-center p-2 font-semibold border-y border-slate-600 w-full text-lg">{ group }</span>
 		for _, property := range properties.GetPropertiesForDeviceGroup(device,
 	group) {
-			<tr style="border: 1px solid black;">
-				<td style="border: 1px solid black; font-weight: bold;">{ property.Label }</td>
+			<span class="font-semibold justify-self-center self-center">{ property.Label }</span>
+			<div class="col-span-2 px-4">
 				@PropertyValues(property)
-			</tr>
+			</div>
 		}
 	}
 }
 
 templ DeviceView(properties indiclient.Properties, device string) {
-	<table id={ deviceID(device) } hx-swap-oob="true" style="border: 2px solid black; border-collapse: collapse; max-width: calc(100vw - 26px);">
-		<thead>
-			<tr>
-				<th colspan="6" style="border: 1px solid black; background-color: gray;">{ device }</th>
-			</tr>
-		</thead>
-		<tbody>
-			@groupView(properties, device)
-		</tbody>
-	</table>
+	<div id={ deviceID(device) } hx-swap-oob="true" class="text-white border-y md:border md:rounded-lg shadow-lg my-2 md:m-2 py-4 border-slate-600 dark:bg-gray-800 grid grid-cols-3 gap-4">
+		<span class="col-span-3 font-bold justify-self-center pt-2 text-xl">{ device }</span>
+		@groupView(properties, device)
+	</div>
 }
 
 templ Hardware(properties indiclient.Properties) {
 	@Root() {
-		<div>
-			for _, device := range properties.GetDevicesSorted() {
-				@DeviceView(properties, device)
-			}
+		<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
+		<div class="flex flex-col border-b md:border md:rounded-lg md:m-2 h-12 dark:bg-gray-800 border-slate-600 dark:text-slate-400 px-4 justify-center">
+			<span id="notifications"></span>
 		</div>
+		for _, device := range properties.GetDevicesSorted() {
+			@DeviceView(properties, device)
+		}
 	}
-}
-
-templ RawHardware(properties indiclient.Properties) {
-	<!DOCTYPE html>
-	<html lang="fr">
-		<head>
-			<title>INDI Air</title>
-			<meta charset="UTF-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<script src="static/htmx.min.js"></script>
-			<script src="static/sse.js"></script>
-		</head>
-		<body>
-			<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
-			<div id="notifications"></div>
-			for _, device := range properties.GetDevicesSorted() {
-				@DeviceView(properties, device)
-			}
-		</body>
-	</html>
 }

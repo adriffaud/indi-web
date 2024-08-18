@@ -3,7 +3,7 @@ package components
 templ button(btnType, text string, attrs templ.Attributes) {
 	<button
 		type={ btnType }
-		class="rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 text-sm font-semibold leading-6 text-white active:text-white/80 w-full"
+		class="rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3 text-sm font-semibold leading-6 disabled:text-white/10 text-white active:text-white/80 w-full"
 		{ attrs... }
 	>
 		{ text }
@@ -15,7 +15,7 @@ templ textInput(idStr, value string, attrs templ.Attributes) {
 		id={ idStr }
 		value={ value }
 		type="text"
-		class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+		class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:text-white/30"
 		{ attrs... }
 	/>
 }

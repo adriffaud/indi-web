@@ -15,7 +15,7 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) hardware(w http.ResponseWriter, r *http.Request) {
-	components.RawHardware(app.indiClient.Properties).Render(r.Context(), w)
+	components.Hardware(app.indiClient.Properties).Render(r.Context(), w)
 }
 
 func (app *application) setup(w http.ResponseWriter, r *http.Request) {
