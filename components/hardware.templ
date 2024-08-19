@@ -61,7 +61,7 @@ templ groupView(properties indiclient.Properties, device string) {
 }
 
 templ DeviceView(properties indiclient.Properties, device string) {
-	<div id={ deviceID(device) } hx-swap-oob="true" class="text-white border-y md:border md:rounded-lg shadow-lg my-2 md:m-2 py-4 border-slate-600 dark:bg-gray-800 grid grid-cols-3 gap-4">
+	<div id={ deviceID(device) } hx-swap-oob="true" class="text-white border-y md:border md:rounded-lg shadow-lg my-2 md:m-2 py-4 border-slate-600 dark:bg-gray-800 grid grid-cols-3 gap-4 max-w-4xl">
 		<span class="col-span-3 font-bold justify-self-center pt-2 text-xl">{ device }</span>
 		@groupView(properties, device)
 	</div>
@@ -69,12 +69,14 @@ templ DeviceView(properties indiclient.Properties, device string) {
 
 templ Hardware(properties indiclient.Properties) {
 	@Root() {
-		<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
-		<div class="flex flex-col border-b md:border md:rounded-lg md:m-2 h-12 dark:bg-gray-800 border-slate-600 dark:text-slate-400 px-4 justify-center">
-			<span id="notifications"></span>
+		<div class="flex flex-col items-center">
+			<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
+			<div class="flex flex-col border-b md:border md:rounded-lg md:m-2 h-12 dark:bg-gray-800 border-slate-600 dark:text-slate-400 px-4 justify-center w-full">
+				<span id="notifications"></span>
+			</div>
+			for _, device := range properties.GetDevicesSorted() {
+				@DeviceView(properties, device)
+			}
 		</div>
-		for _, device := range properties.GetDevicesSorted() {
-			@DeviceView(properties, device)
-		}
 	}
 }
