@@ -61,7 +61,7 @@ templ groupView(properties indiclient.Properties, device string) {
 }
 
 templ DeviceView(properties indiclient.Properties, device string) {
-	<div id={ deviceID(device) } hx-swap-oob="true" class="text-white border-y md:border md:rounded-lg shadow-lg my-2 md:m-2 py-4 border-slate-600 dark:bg-gray-800 grid grid-cols-3 gap-4 max-w-4xl">
+	<div id={ deviceID(device) } hx-swap-oob="true" class="border-y md:border md:rounded-lg shadow-lg my-2 md:m-2 py-4 border-slate-600 dark:bg-gray-800 grid grid-cols-3 gap-4 max-w-4xl">
 		<span class="col-span-3 font-bold justify-self-center pt-2 text-xl">{ device }</span>
 		@groupView(properties, device)
 	</div>
