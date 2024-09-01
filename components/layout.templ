@@ -2,16 +2,15 @@ package components
 
 templ Root() {
 	<!DOCTYPE html>
-	<html lang="en" data-bs-theme="dark">
+	<html lang="en">
 		<head>
 			<title>INDI Air</title>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<script src="static/htmx.min.js"></script>
 			<script src="static/sse.js"></script>
-			<link rel="stylesheet" href="static/tailwind.css"/>
 		</head>
-		<body class="bg-white text-black dark:text-white dark:bg-gray-900">
+		<body>
 			{ children... }
 		</body>
 	</html>

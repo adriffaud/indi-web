@@ -1,19 +1,35 @@
 package components
 
-templ Main() {
+import (
+	"fmt"
+	"github.com/adriffaud/indi-web/internal/config"
+)
+
+templ Main(config config.Config) {
 	@Root() {
-		<div class="flex flex-col gap-4">
-			@card() {
-				<a href="/hardware" class="text-blue-600 visited:text-purple-600">Page matériel</a>
-				<form method="POST" action="/indi/action">
-					@button("submit", "Connecter monture", nil)
-				</form>
-			}
-			@card() {
-				<form method="POST" action="/setup">
-					@button("submit", "Arrêter serveur INDI", nil)
-				</form>
-			}
-		</div>
+		<a href="/hardware">Page matériel</a>
+		if config.Mount != "" {
+			<form method="POST" action="/indi/action">
+				<fieldset>
+					<legend>Monture</legend>
+					@button("submit", "Connecter monture",
+						templ.Attributes{
+							"hx-post": "/indi/action",
+							"hx-swap": "none",
+							"hx-vals": fmt.Sprintf("{\"device\": \"%s\", \"name\": \"CONNECTION\", \"valueName\": \"CONNECT\"}", config.Mount),
+						})
+				</fieldset>
+			</form>
+		}
+		if config.Camera != "" {
+			<h4>Camera</h4>
+		}
+		<hr/>
+		<form method="POST" action="/setup">
+			<fieldset>
+				<legend>Serveur INDI</legend>
+				@button("submit", "Arrêter serveur INDI", nil)
+			</fieldset>
+		</form>
 	}
 }

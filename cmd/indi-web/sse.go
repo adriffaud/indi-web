@@ -56,7 +56,7 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 
 				fmt.Fprintf(w, "data: %s\n\n", tmpl)
 			case indiclient.Message:
-				msg := fmt.Sprintf("<span id=\"notifications\" hx-swap-oob=\"true\">%s</span>", evt.Message)
+				msg := fmt.Sprintf("<samp id=\"notifications\" hx-swap-oob=\"true\">%s</samp>", evt.Message)
 				fmt.Fprintf(w, "data: %s\n\n", msg)
 			}
 
