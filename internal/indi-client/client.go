@@ -8,12 +8,17 @@ import (
 	"net"
 	"slices"
 	"strconv"
+	"sync"
+	"time"
 )
+
+const timeout = 5 * time.Second
 
 type Client struct {
 	conn       net.Conn
 	Properties Properties
 	observers  map[Observer]struct{}
+	mu         sync.Mutex
 }
 
 func New(address string) (*Client, error) {
@@ -72,6 +77,14 @@ func (c *Client) sendMessage(message string) error {
 func (c *Client) listen(reader io.Reader) {
 	raw := xml.NewDecoder(reader)
 	decoder := xml.NewTokenDecoder(Trimmer{raw})
+	inactivityTimer := time.NewTimer(timeout)
+
+	go func() {
+		for {
+			<-inactivityTimer.C
+			slog.Debug("data receive timeout")
+		}
+	}()
 
 	var property Property
 	var value Value
@@ -86,6 +99,8 @@ func (c *Client) listen(reader io.Reader) {
 				break
 			}
 		}
+
+		inactivityTimer.Reset(timeout)
 
 		switch se := t.(type) {
 		case xml.StartElement:
@@ -163,6 +178,9 @@ func (c *Client) listen(reader io.Reader) {
 			slog.Warn(fmt.Sprintf("⚠️ Unhandled element type: %T\n", t), "value", se)
 		}
 	}
+
+	inactivityTimer.Stop()
+	slog.Debug("connection closed")
 }
 
 func (c *Client) addToProperties(property Property) {
@@ -205,6 +223,8 @@ func (c *Client) updatePropertyValues(property Property) {
 }
 
 func (c *Client) Register(o Observer) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.observers[o] = struct{}{}
 	slog.Debug("Adding observer", "count", len(c.observers))
 }
@@ -215,6 +235,8 @@ func (c *Client) Unregister(o Observer) {
 }
 
 func (c *Client) Notify(e Event) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	for o := range c.observers {
 		o.OnNotify(e)
 	}

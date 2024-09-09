@@ -7,6 +7,7 @@ const (
 	Update
 	Delete
 	Message
+	Timeout
 )
 
 type Event struct {
