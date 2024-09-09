@@ -25,75 +25,57 @@ templ PropertyValues(property indiclient.Property) {
 	switch property.Type {
 		case indiclient.Text, indiclient.Number:
 			for _, value := range property.Values {
-				<tr id={ uniqueValueName(property, value.Name) } hx-swap-oob="true">
-					<td>
-						<label for={ uniqueValueName(property, value.Name) + "_input" }>{ value.Label }</label>
-					</td>
-					<td>
-						<input
-							id={ uniqueValueName(property, value.Name) + "_input" }
-							value={ value.Value }
-							type="text"
-							if property.Perm == "ro" {
-								disabled="true"
-							}
-						/>
-					</td>
-				</tr>
+				<div id={ uniqueValueName(property, value.Name) } hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
+					@label(uniqueValueName(property, value.Name)+"_input", value.Label)
+					@textInput(uniqueValueName(property, value.Name)+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", property.Perm == "ro")})
+				</div>
 			}
 		case indiclient.Switch:
-			<td id={ uniquePropertyID(property) } hx-swap-oob="true">
+			<div id={ uniquePropertyID(property) } hx-swap-oob="true" class="grid grid-cols-2 gap-2">
 				for _, value := range property.Values {
-					<button
-						type="button"
-						hx-post="/indi/action"
-						hx-swap="none"
-						hx-vals={ fmt.Sprintf("{\"device\": \"%s\", \"name\": \"%s\", \"valueName\": \"%s\"}", property.Device, property.Name, value.Name) }
-						if property.Perm == "ro" || value.Value == "On" {
-							disabled="true"
-						}
-					>
-						{ value.Label }
-					</button>
+					@button(
+						"button",
+						value.Label,
+						templ.Attributes{
+							"hx-post":  "/indi/action",
+							"hx-swap":  "none",
+							"hx-vals":  fmt.Sprintf("{\"device\": \"%s\", \"name\": \"%s\", \"valueName\": \"%s\"}", property.Device, property.Name, value.Name),
+							"disabled": templ.KV("true", property.Perm == "ro" || value.Value == "On"),
+						})
 				}
-			</td>
+			</div>
 	}
 }
 
 templ groupView(properties indiclient.Properties, device string) {
 	for _, group := range properties.GetDeviceGroupsSorted(device) {
-		<h4>{ group }</h4>
+		<h4 class="text-lg font-bold text-ctp-blue pt-4">{ group }</h4>
 		for _, property := range properties.GetPropertiesForDeviceGroup(device,
 	group) {
-			<form>
-				<fieldset>
-					<legend>{ property.Label }</legend>
-					<table>
-						<tbody>
-							@PropertyValues(property)
-						</tbody>
-					</table>
-				</fieldset>
-			</form>
+			<h5 class="font-bold text-ctp-peach py-2">{ property.Label }</h5>
+			@PropertyValues(property)
 		}
 	}
 }
 
 templ DeviceView(properties indiclient.Properties, device string) {
-	<section id={ deviceID(device) } hx-swap-oob="true">
-		<h3>{ device }</h3>
+	<section id={ deviceID(device) } hx-swap-oob="true" class="grid grid-cols-1 gap-2 p-4">
+		<h3 class="text-ctp-mauve text-2xl font-bold">{ device }</h3>
 		@groupView(properties, device)
 	</section>
 }
 
 templ Hardware(properties indiclient.Properties) {
 	@Root() {
-		<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
-		<h4>Notifications</h4>
-		<samp id="notifications"></samp>
-		<hr/>
-		for _, device := range properties.GetDevicesSorted() {
-			@DeviceView(properties, device)
-		}
+		<div class="grid grid-cols-1 gap-2">
+			<div class="bg-gradient-to-b from-ctp-base to-ctp-crust p-4">
+				<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
+				<h4 class="text-ctp-blue font-bold">Notifications</h4>
+				<samp id="notifications" class="font-mono"></samp>
+			</div>
+			for _, device := range properties.GetDevicesSorted() {
+				@DeviceView(properties, device)
+			}
+		</div>
 	}
 }
