@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "This is an attempt to write a web application to control astronomical equipment from a smartphone/tablet without the need to use a computer or remote desktop on the equipment controller.",
   "main": "index.js",
-  "dependencies": {},
   "devDependencies": {
+    "@catppuccin/tailwindcss": "^0.1.6",
     "tailwindcss": "^3.4.8"
   },
   "scripts": {
