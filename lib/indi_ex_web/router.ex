@@ -17,7 +17,10 @@ defmodule IndiExWeb.Router do
   scope "/", IndiExWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live_session :indi do
+      live "/", HomeLive, :index
+      live "/hardware", HardwareLive, :index
+    end
   end
 
   # Other scopes may use custom stacks.

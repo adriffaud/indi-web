@@ -1,0 +1,40 @@
+<div class="grid grid-cols-1 gap-2">
+  <section class="grid grid-cols-1 gap-2 p-4">
+    <%= for {device, groups} <- @properties do %>
+      <h3 class="text-ctp-mauve text-2xl font-bold">
+        <%= device %>
+      </h3>
+      <%= for {group, props} <- groups do %>
+        <h4 class="text-lg font-bold text-ctp-blue pt-4">
+          <%= group %>
+        </h4>
+        <%= for prop <- props do %>
+          <h5 class="font-bold text-ctp-peach py-2">
+            <%= prop.label %>
+          </h5>
+          <%= if prop.type==:text || prop.type == :number do %>
+            <%= for value <- prop.values do %>
+              <div class="grid grid-cols-2 gap-2 items-center">
+                <.input
+                  name={value.name}
+                  label={value.label}
+                  value={value.value}
+                  disabled={prop.perm == "ro"}
+                />
+              </div>
+            <% end %>
+          <% end %>
+          <%= if prop.type==:switch do %>
+            <div class="grid grid-cols-2 gap-2">
+              <%= for value <- prop.values do %>
+                <.button>
+                  <%= value.label %>
+                </.button>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </section>
+</div>

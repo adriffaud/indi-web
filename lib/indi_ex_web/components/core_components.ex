@@ -156,8 +156,7 @@ defmodule IndiExWeb.CoreComponents do
         phx-connected={hide("#client-error")}
         hidden
       >
-        Attempting to reconnect
-        <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        Attempting to reconnect <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
       </.flash>
 
       <.flash
@@ -230,8 +229,8 @@ defmodule IndiExWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "phx-submit-loading:opacity-75 rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3",
+        "text-sm font-semibold leading-6 text-ctp-blue active:text-ctp-blue/80 disabled:text-ctp-blue/40",
         @class
       ]}
       {@rest}

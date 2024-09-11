@@ -1,0 +1,49 @@
+<.flash_group flash={@flash} />
+<div class="grid grid-cols-1 gap-4">
+  <div class="flex gap-1 justify-between p-1">
+    <.link navigate={~p"/hardware"}
+      class="phx-submit-loading:opacity-75 rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 text-ctp-blue active:text-ctp-blue/80 disabled:text-ctp-blue/40">
+      Matériel
+    </.link>
+    <.button phx-click="stop-indi">Arrêter INDI</.button>
+  </div>
+  <div class="h-80 border border-ctp-surface1 bg-ctp-surface0 shadow">
+    <img class="aspect-auto w-full" />
+  </div>
+  <div class="grid grid-cols-4 gap-1 px-1">
+    <div class="col-start-2">
+      <button
+        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
+        Haut
+      </button>
+    </div>
+    <div class="row-start-2">
+      <button
+        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
+        Gauche
+      </button>
+    </div>
+    <div class="row-start-2">
+      <button
+        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-red active:text-ctp-blue/80">
+        Stop
+      </button>
+    </div>
+    <div class="row-start-2">
+      <button
+        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
+        Droite
+      </button>
+    </div>
+    <div class="row-start-3 col-start-2">
+      <button
+        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
+        Bas
+      </button>
+    </div>
+    <div class="col-start-4 grid grid-cols-subgrid gap-1">
+      <.button>Parquer</.button>
+      <.button>Suivi</.button>
+    </div>
+  </div>
+</div>
