@@ -67,22 +67,21 @@ run: build
 	/tmp/bin/${BINARY_NAME}
 
 live/templ:
-	templ generate --watch --proxy="http://localhost:8080" --open-browser=false -v
+	templ generate --watch --proxy="http://localhost:8080" --open-browser=false
 
 live/server:
-	go run github.com/cosmtrek/air@v1.51.0 \
+	go run github.com/air-verse/air@v1.52.3 \
 	--build.cmd "go build -o tmp/indi-web ./cmd/indi-web/" --build.bin "tmp/indi-web" --build.delay "100" \
 	--build.exclude_dir "node_modules" \
-	--build.exclude_regex "_templ.go" \
 	--build.include_ext "go" \
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 
 live/tailwind:
-	npx tailwindcss -i ./input.css -o assets/tailwind.css --watch
+	npx tailwindcss -i ./input.css -o ./assets/tailwind.css --minify --watch
 
 live/sync_assets:
-	go run github.com/cosmtrek/air@v1.51.0 \
+	go run github.com/air-verse/air@v1.52.3 \
 	--build.cmd "templ generate --notify-proxy" \
 	--build.bin "true" \
 	--build.delay "100" \
@@ -91,4 +90,4 @@ live/sync_assets:
 	--build.include_ext "js,css"
 
 run/live:
-	make -j5 live/templ live/server live/tailwind live/sync_assets
+	make -j4 live/tailwind live/templ live/server live/sync_assets

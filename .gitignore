@@ -4,3 +4,4 @@ node_modules/
 assets/tailwind.css
 
 *_templ.go
+*_templ.txt
