@@ -1,0 +1,6 @@
+services:
+  indi:
+    build: .
+    ports:
+      - 7624:7624
+    command: indiserver -v indi_simulator_telescope
