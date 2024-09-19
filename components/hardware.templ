@@ -68,11 +68,6 @@ templ DeviceView(properties indiclient.Properties, device string) {
 templ Hardware(properties indiclient.Properties) {
 	@Root() {
 		<div class="grid grid-cols-1 gap-2">
-			<div class="bg-gradient-to-b from-ctp-base to-ctp-crust p-4">
-				<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
-				<h4 class="text-ctp-blue font-bold">Notifications</h4>
-				<samp id="notifications" class="font-mono"></samp>
-			</div>
 			for _, device := range properties.GetDevicesSorted() {
 				@DeviceView(properties, device)
 			}

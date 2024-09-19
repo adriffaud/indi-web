@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -56,8 +58,11 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 
 				fmt.Fprintf(w, "data: %s\n\n", tmpl)
 			case indiclient.Message:
-				msg := fmt.Sprintf("<samp id=\"notifications\" hx-swap-oob=\"true\">%s</samp>", evt.Message)
-				fmt.Fprintf(w, "data: %s\n\n", msg)
+				slog.Debug("NOTIFICATION", "event", evt)
+				var msg bytes.Buffer
+				components.Notifications(evt.Message).Render(context.Background(), &msg)
+				slog.Debug("HTML", "msg", msg.String())
+				fmt.Fprintf(w, "data: %s\n\n", msg.String())
 			}
 
 			w.(http.Flusher).Flush()

@@ -1,5 +1,9 @@
 package components
 
+templ Notifications(content string) {
+	<samp id="notifications" hx-swap-oob="true" class="text-xs font-mono">{ content }</samp>
+}
+
 templ Root() {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -12,6 +16,10 @@ templ Root() {
 			<link rel="stylesheet" href="static/tailwind.css"/>
 		</head>
 		<body class="bg-ctp-base text-ctp-text container p-1">
+			<div hx-ext="sse" sse-connect="/sse" sse-swap="message"></div>
+			<div class="fixed bottom-0 left-0 w-screen bg-gradient-to-b from-ctp-base to-ctp-crust p-4">
+				@Notifications("")
+			</div>
 			{ children... }
 		</body>
 	</html>
