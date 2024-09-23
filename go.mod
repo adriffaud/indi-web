@@ -1,6 +1,6 @@
 module github.com/adriffaud/indi-web
 
-go 1.22.5
+go 1.23.1
 
 require (
 	github.com/a-h/templ v0.2.778
