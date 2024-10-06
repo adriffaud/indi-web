@@ -82,7 +82,7 @@ func (c *Client) listen(reader io.Reader) {
 	go func() {
 		for {
 			<-inactivityTimer.C
-			slog.Debug("data receive timeout")
+			slog.Debug("😴😴 connection idle")
 		}
 	}()
 
@@ -175,7 +175,7 @@ func (c *Client) listen(reader io.Reader) {
 				c.updatePropertyValues(property)
 			}
 		default:
-			slog.Warn(fmt.Sprintf("⚠️ Unhandled element type: %T\n", t), "value", se)
+			slog.Warn(fmt.Sprintf("⚠️⚠️⚠️ Unhandled element type: %T\n", t), "value", se)
 		}
 	}
 
@@ -226,12 +226,12 @@ func (c *Client) Register(o Observer) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.observers[o] = struct{}{}
-	slog.Debug("Adding observer", "count", len(c.observers))
+	slog.Debug("➕➕ Adding observer", "count", len(c.observers))
 }
 
 func (c *Client) Unregister(o Observer) {
 	delete(c.observers, o)
-	slog.Debug("Removing observer", "count", len(c.observers))
+	slog.Debug("➖➖ Removing observer", "count", len(c.observers))
 }
 
 func (c *Client) Notify(e Event) {
