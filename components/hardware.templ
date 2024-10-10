@@ -21,14 +21,18 @@ func uniqueValueName(property indiclient.Property, key string) string {
 	return fmt.Sprintf("%s_%s", uniquePropertyID(property), key)
 }
 
+templ TextProperty(name string, value indiclient.Value, enabled bool) {
+	<div id={ name } hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
+		@label(name+"_input", value.Label)
+		@textInput(name+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", enabled)})
+	</div>
+}
+
 templ PropertyValues(property indiclient.Property) {
 	switch property.Type {
 		case indiclient.Text, indiclient.Number:
 			for _, value := range property.Values {
-				<div id={ uniqueValueName(property, value.Name) } hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-					@label(uniqueValueName(property, value.Name)+"_input", value.Label)
-					@textInput(uniqueValueName(property, value.Name)+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", property.Perm == "ro")})
-				</div>
+				@TextProperty(uniqueValueName(property, value.Name), value, property.Perm == "ro")
 			}
 		case indiclient.Switch:
 			<div id={ uniquePropertyID(property) } hx-swap-oob="true" class="grid grid-cols-2 gap-2">

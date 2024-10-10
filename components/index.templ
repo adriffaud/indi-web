@@ -2,17 +2,26 @@ package components
 
 templ Main() {
 	@Root() {
-		<div class="grid grid-cols-1 gap-4">
-			<div class="flex gap-1 justify-between p-1">
+		<div class="grid grid-cols-1 gap-4 p-1">
+			<div class="flex gap-1 justify-between">
 				@link("/hardware", "Matériel", nil)
 				<form method="POST" action="/setup">
 					@button("submit", "Arrêter INDI", nil)
 				</form>
 			</div>
-			<div class="h-80 border border-ctp-surface1 bg-ctp-surface0 shadow">
-				<img class="aspect-auto w-full"/>
+			<div class="grid grid-cols-1 gap-2">
+				<div id="ra-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
+					@label("ra_input", "RA (hh:mm:ss)")
+					@textInput("ra_input", "RARA", templ.Attributes{"disabled": "true"})
+				</div>
+				<div id="dec-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
+					@label("dev_input", "DEC (hh:mm:ss)")
+					@textInput("dev_input", "RARA", templ.Attributes{"disabled": "true"})
+				</div>
+				@button("submit", "Déparquer", nil)
+				@button("submit", "Activer suivi", nil)
 			</div>
-			<div class="grid grid-cols-4 gap-1 px-1">
+			<div class="grid grid-cols-3 gap-1">
 				<div class="col-start-2">
 					<button class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm self-center font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-full">
@@ -47,10 +56,6 @@ templ Main() {
 							<path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V8.25a.75.75 0 0 0-1.5 0v5.69l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z" clip-rule="evenodd"></path>
 						</svg>
 					</button>
-				</div>
-				<div class="col-start-4 grid grid-cols-subgrid gap-1">
-					@button("submit", "Parquer", nil)
-					@button("submit", "Suivi", nil)
 				</div>
 			</div>
 		</div>
