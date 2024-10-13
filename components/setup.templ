@@ -36,11 +36,11 @@ templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver
 						<legend class="text-lg font-bold dark:text-white">Matériel</legend>
 						<div class="py-4">
 							@label("date-time", "Date/Heure")
-							@textInput("date-time", "2023-11-01 20:45", templ.Attributes{"disabled": true})
+							@TextInput("date-time", "2023-11-01 20:45", templ.Attributes{"disabled": true})
 							@label("latitude", "Latitude")
-							@textInput("latitude", "N 47º 14' 25", templ.Attributes{"disabled": true})
+							@TextInput("latitude", "N 47º 14' 25", templ.Attributes{"disabled": true})
 							@label("longitude", "Longitude")
-							@textInput("longitude", "E 05º 55' 57", templ.Attributes{"disabled": true})
+							@TextInput("longitude", "E 05º 55' 57", templ.Attributes{"disabled": true})
 							<hr class="border-gray-200 dark:border-gray-700 my-4 mt-6"/>
 							@driverSelector("Monture", driversGroups["Telescopes"], devices["mount"])
 							@driverSelector("Caméra", driversGroups["CCDs"], devices["ccd"])

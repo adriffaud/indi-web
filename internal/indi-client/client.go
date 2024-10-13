@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const timeout = 5 * time.Second
+const timeout = 2 * time.Second
 
 type Client struct {
 	conn       net.Conn

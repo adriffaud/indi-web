@@ -19,25 +19,11 @@ type application struct {
 }
 
 func (app application) OnNotify(e indiclient.Event) {
-	switch e.EventType {
-	case indiclient.Timeout:
-		if app.mount.Driver != "" && !app.mount.Connected {
-			slog.Debug("🤓 Mount not connected, connecting...")
-			err := app.indiClient.Connect(app.mount.Driver)
-			if err != nil {
-				slog.Error("🔴 Could not automatically connect to mount", "err", err)
-			}
-		}
-	case indiclient.Update:
-		if e.Property.Device == app.mount.Driver && e.Property.Name == "EQUATORIAL_EOD_COORD" {
-			for _, value := range e.Property.Values {
-				if value.Name == "RA" {
-					app.mount.RA = value.Value
-				}
-				if value.Name == "DEC" {
-					app.mount.DEC = value.Value
-				}
-			}
+	if e.EventType == indiclient.Timeout && app.mount.Driver != "" && !app.mount.Connected {
+		slog.Debug("🤓 Mount not connected, connecting...")
+		err := app.indiClient.Connect(app.mount.Driver)
+		if err != nil {
+			slog.Error("🔴 Could not automatically connect to mount", "err", err)
 		}
 	}
 }

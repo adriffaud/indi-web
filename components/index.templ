@@ -2,6 +2,7 @@ package components
 
 templ Main() {
 	@Root() {
+		<div hx-ext="sse" sse-connect="/sse" sse-swap="Mount"></div>
 		<div class="grid grid-cols-1 gap-4 p-1">
 			<div class="flex gap-1 justify-between">
 				@link("/hardware", "Matériel", nil)
@@ -12,11 +13,11 @@ templ Main() {
 			<div class="grid grid-cols-1 gap-2">
 				<div id="ra-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
 					@label("ra_input", "RA (hh:mm:ss)")
-					@textInput("ra_input", "RARA", templ.Attributes{"disabled": "true"})
+					@TextInput("ra_input", "", templ.Attributes{"disabled": "true"})
 				</div>
 				<div id="dec-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-					@label("dev_input", "DEC (hh:mm:ss)")
-					@textInput("dev_input", "DECDEC", templ.Attributes{"disabled": "true"})
+					@label("dec_input", "DEC (hh:mm:ss)")
+					@TextInput("dec_input", "", templ.Attributes{"disabled": "true"})
 				</div>
 				@button("submit", "Déparquer", nil)
 				@button("submit", "Activer suivi", nil)

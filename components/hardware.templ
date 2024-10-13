@@ -24,7 +24,7 @@ func uniqueValueName(property indiclient.Property, key string) string {
 templ TextProperty(name string, value indiclient.Value, enabled bool) {
 	<div id={ name } hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
 		@label(name+"_input", value.Label)
-		@textInput(name+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", enabled)})
+		@TextInput(name+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", enabled)})
 	</div>
 }
 
@@ -72,6 +72,7 @@ templ DeviceView(properties indiclient.Properties, device string) {
 templ Hardware(properties indiclient.Properties) {
 	@Root() {
 		<div class="grid grid-cols-1 gap-2">
+			<div hx-ext="sse" sse-connect="/sse" sse-swap="Hardware"></div>
 			for _, device := range properties.GetDevicesSorted() {
 				@DeviceView(properties, device)
 			}
