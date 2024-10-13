@@ -15,19 +15,29 @@ import (
 
 type application struct {
 	indiClient *indiclient.Client
-	telescope  config.Telescope
+	mount      config.Mount
 }
 
 func (app application) OnNotify(e indiclient.Event) {
-	if e.EventType != indiclient.Timeout {
-		return
-	}
-
-	if app.telescope.Driver != "" && !app.telescope.Connected {
-		slog.Debug("🤓 Telescope not connected, connecting...")
-		err := app.indiClient.Connect(app.telescope.Driver)
-		if err != nil {
-			slog.Error("🔴 Could not automatically connect to telescope", "err", err)
+	switch e.EventType {
+	case indiclient.Timeout:
+		if app.mount.Driver != "" && !app.mount.Connected {
+			slog.Debug("🤓 Mount not connected, connecting...")
+			err := app.indiClient.Connect(app.mount.Driver)
+			if err != nil {
+				slog.Error("🔴 Could not automatically connect to mount", "err", err)
+			}
+		}
+	case indiclient.Update:
+		if e.Property.Device == app.mount.Driver && e.Property.Name == "EQUATORIAL_EOD_COORD" {
+			for _, value := range e.Property.Values {
+				if value.Name == "RA" {
+					app.mount.RA = value.Value
+				}
+				if value.Name == "DEC" {
+					app.mount.DEC = value.Value
+				}
+			}
 		}
 	}
 }
@@ -46,7 +56,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	app := &application{}
-	app.telescope.Driver = "Telescope Simulator"
+	app.mount.Driver = "Telescope Simulator"
 
 	// TODO: REMOVE ME
 	// TEMP AUTOSTART
