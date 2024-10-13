@@ -8,12 +8,28 @@ import (
 	"os"
 	"time"
 
+	"github.com/adriffaud/indi-web/internal/config"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
 )
 
 type application struct {
 	indiClient *indiclient.Client
+	telescope  config.Telescope
+}
+
+func (app application) OnNotify(e indiclient.Event) {
+	if e.EventType != indiclient.Timeout {
+		return
+	}
+
+	if app.telescope.Driver != "" && !app.telescope.Connected {
+		slog.Debug("🤓 Telescope not connected, connecting...")
+		err := app.indiClient.Connect(app.telescope.Driver)
+		if err != nil {
+			slog.Error("🔴 Could not automatically connect to telescope", "err", err)
+		}
+	}
 }
 
 var (
@@ -30,6 +46,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	app := &application{}
+	app.telescope.Driver = "Telescope Simulator"
 
 	// TODO: REMOVE ME
 	// TEMP AUTOSTART
@@ -48,6 +65,7 @@ func main() {
 	}
 	app.indiClient = client
 	app.indiClient.GetProperties()
+	app.indiClient.Register(app)
 
 	slog.Debug("INDI client connected")
 	// TEMP AUTOSTART

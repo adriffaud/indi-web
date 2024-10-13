@@ -46,6 +46,10 @@ func (c *Client) GetProperties() error {
 	return c.sendMessage("<getProperties version=\"1.7\"/>")
 }
 
+func (c *Client) Connect(driver string) error {
+	return c.NewPropertyValue(PropertySelector{Device: driver, Name: "CONNECTION", ValueName: "CONNECT"})
+}
+
 func (c *Client) NewPropertyValue(selector PropertySelector) error {
 	property := c.Properties.FindProperty(selector)
 
@@ -83,6 +87,7 @@ func (c *Client) listen(reader io.Reader) {
 		for {
 			<-inactivityTimer.C
 			slog.Debug("😴😴 connection idle")
+			c.Notify(Event{EventType: Timeout})
 		}
 	}()
 
@@ -226,12 +231,12 @@ func (c *Client) Register(o Observer) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.observers[o] = struct{}{}
-	slog.Debug("➕➕ Adding observer", "count", len(c.observers))
+	slog.Debug("➕ Adding observer", "count", len(c.observers))
 }
 
 func (c *Client) Unregister(o Observer) {
 	delete(c.observers, o)
-	slog.Debug("➖➖ Removing observer", "count", len(c.observers))
+	slog.Debug("➖ Removing observer", "count", len(c.observers))
 }
 
 func (c *Client) Notify(e Event) {
