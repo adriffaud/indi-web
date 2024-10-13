@@ -7,18 +7,35 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/adriffaud/indi-web/components"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 )
 
 type SSEClient struct {
-	addr      string
-	eventChan chan indiclient.Event
+	app       *application
+	eventChan chan string
+	request   *http.Request
 }
 
 func (sse SSEClient) OnNotify(e indiclient.Event) {
-	sse.eventChan <- e
+	var buf bytes.Buffer
+	var err error
+
+	switch e.EventType {
+	case indiclient.Add, indiclient.Delete:
+		err = components.DeviceView(sse.app.indiClient.Properties, e.Property.Device).Render(sse.request.Context(), &buf)
+	case indiclient.Update:
+		err = components.PropertyValues(e.Property).Render(sse.request.Context(), &buf)
+	case indiclient.Message:
+		slog.Debug("📮 NOTIFICATION", "event", e)
+		err = components.Notifications(e.Message).Render(context.Background(), &buf)
+	}
+
+	if err != nil {
+		slog.Error("failed to convert to HTML", "error", err)
+	}
+
+	sse.eventChan <- buf.String()
 }
 
 func (app *application) sse(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +49,7 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Transfer-Encoding", "chunked")
 
-	client := SSEClient{addr: r.RemoteAddr, eventChan: make(chan indiclient.Event)}
+	client := SSEClient{app: app, request: r, eventChan: make(chan string)}
 	app.indiClient.Register(client)
 
 	for {
@@ -41,30 +58,8 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 			slog.Debug("SSE client disconnected", "address", r.RemoteAddr)
 			app.indiClient.Unregister(client)
 			return
-		case evt := <-client.eventChan:
-			switch evt.EventType {
-			case indiclient.Add, indiclient.Delete:
-				tmpl, err := templ.ToGoHTML(r.Context(), components.DeviceView(app.indiClient.Properties, evt.Property.Device))
-				if err != nil {
-					slog.Error("failed to convert to HTML", "error", err)
-				}
-
-				fmt.Fprintf(w, "data: %s\n\n", tmpl)
-			case indiclient.Update:
-				tmpl, err := templ.ToGoHTML(r.Context(), components.PropertyValues(evt.Property))
-				if err != nil {
-					slog.Error("failed to convert to HTML", "error", err)
-				}
-
-				fmt.Fprintf(w, "data: %s\n\n", tmpl)
-			case indiclient.Message:
-				slog.Debug("NOTIFICATION", "event", evt)
-				var msg bytes.Buffer
-				components.Notifications(evt.Message).Render(context.Background(), &msg)
-				slog.Debug("HTML", "msg", msg.String())
-				fmt.Fprintf(w, "data: %s\n\n", msg.String())
-			}
-
+		case data := <-client.eventChan:
+			fmt.Fprintf(w, "data: %s\n\n", data)
 			w.(http.Flusher).Flush()
 		}
 	}
