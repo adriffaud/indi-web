@@ -140,13 +140,26 @@ func (c *Client) listen(reader io.Reader) {
 					property.Timeout = timeout
 				}
 			case "defNumber":
+				min, err := strconv.Atoi(attrs["min"])
+				if err != nil {
+					slog.Error("could not parse min value for defNumber", "min", attrs["min"])
+				}
+				max, err := strconv.Atoi(attrs["max"])
+				if err != nil {
+					slog.Error("could not parse max value for defNumber", "max", attrs["max"])
+				}
+				step, err := strconv.ParseFloat(attrs["step"], 64)
+				if err != nil {
+					slog.Error("could not parse step value for defNumber", "step", attrs["step"])
+				}
+
 				value = Value{
 					Name:   attrs["name"],
 					Label:  attrs["label"],
 					Format: attrs["format"],
-					Min:    attrs["min"],
-					Max:    attrs["max"],
-					Step:   attrs["step"],
+					Min:    min,
+					Max:    max,
+					Step:   step,
 				}
 			case "defSwitch", "defText":
 				value = Value{

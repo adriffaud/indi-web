@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/a-h/templ"
 	"github.com/adriffaud/indi-web/components"
@@ -54,8 +56,12 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 
 					for _, value := range e.Property.Values {
 						if value.Name == "RA" {
-							app.mount.RA = value.Value
-							err := components.TextInput(
+							formated, err := DecimalToSexagesimal(value.Value)
+							if err != nil {
+								slog.Error("could not convert RA coords in sexagesimal", "err", err, "value", value)
+							}
+							app.mount.RA = formated
+							err = components.TextInput(
 								"ra_input",
 								app.mount.RA,
 								templ.Attributes{"disabled": "true", "hx-swap-oob": "true"},
@@ -65,8 +71,12 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 						if value.Name == "DEC" {
-							app.mount.DEC = value.Value
-							err := components.TextInput(
+							formated, err := DecimalToSexagesimal(value.Value)
+							if err != nil {
+								slog.Error("could not convert DEC coords in sexagesimal", "err", err, "value", value)
+							}
+							app.mount.DEC = formated
+							err = components.TextInput(
 								"dec_input",
 								app.mount.DEC,
 								templ.Attributes{"disabled": "true", "hx-swap-oob": "true"},
@@ -94,4 +104,18 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 			w.(http.Flusher).Flush()
 		}
 	}
+}
+
+func DecimalToSexagesimal(decimal string) (string, error) {
+	decimalf, err := strconv.ParseFloat(decimal, 64)
+	if err != nil {
+		return "", err
+	}
+
+	hours, remainder := math.Modf(decimalf)
+	minutesf := remainder * 60
+	minutes, remainder := math.Modf(minutesf)
+	seconds := int(remainder * 60)
+
+	return fmt.Sprintf("%02.0f:%02.0f:%02d", hours, minutes, seconds), nil
 }

@@ -17,9 +17,9 @@ type Value struct {
 	Label  string
 	Value  string
 	Format string
-	Min    string
-	Max    string
-	Step   string
+	Min    int
+	Max    int
+	Step   float64
 }
 
 type Property struct {

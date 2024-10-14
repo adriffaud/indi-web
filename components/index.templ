@@ -16,7 +16,7 @@ templ Main() {
 					@TextInput("ra_input", "", templ.Attributes{"disabled": "true"})
 				</div>
 				<div id="dec-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-					@label("dec_input", "DEC (hh:mm:ss)")
+					@label("dec_input", "DEC (dd:mm:ss)")
 					@TextInput("dec_input", "", templ.Attributes{"disabled": "true"})
 				</div>
 				@button("submit", "Déparquer", nil)
