@@ -11,6 +11,7 @@ import (
 	"github.com/adriffaud/indi-web/internal/config"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	"github.com/lmittmann/tint"
 )
 
 type application struct {
@@ -38,7 +39,7 @@ func main() {
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.Parse()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	logger := slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelDebug, TimeFormat: time.Kitchen}))
 	slog.SetDefault(logger)
 
 	app := &application{}
