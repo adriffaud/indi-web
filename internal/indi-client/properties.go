@@ -13,9 +13,13 @@ const (
 )
 
 type Value struct {
-	Name  string
-	Label string
-	Value string
+	Name   string
+	Label  string
+	Value  string
+	Format string
+	Min    string
+	Max    string
+	Step   string
 }
 
 type Property struct {

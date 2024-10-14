@@ -139,7 +139,16 @@ func (c *Client) listen(reader io.Reader) {
 				if timeout, err := strconv.Atoi(attrs["timeout"]); err == nil {
 					property.Timeout = timeout
 				}
-			case "defNumber", "defSwitch", "defText":
+			case "defNumber":
+				value = Value{
+					Name:   attrs["name"],
+					Label:  attrs["label"],
+					Format: attrs["format"],
+					Min:    attrs["min"],
+					Max:    attrs["max"],
+					Step:   attrs["step"],
+				}
+			case "defSwitch", "defText":
 				value = Value{
 					Name:  attrs["name"],
 					Label: attrs["label"],
