@@ -8,3 +8,7 @@ type Mount struct {
 	RA        string
 	DEC       string
 }
+
+func NewMount() Mount {
+	return Mount{RA: "00:00:00", DEC: "00:00:00", Parked: true}
+}

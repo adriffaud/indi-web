@@ -42,7 +42,7 @@ func main() {
 	logger := slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelDebug, TimeFormat: time.Kitchen}))
 	slog.SetDefault(logger)
 
-	app := &application{}
+	app := &application{mount: config.NewMount()}
 	app.mount.Driver = "Telescope Simulator"
 
 	// TODO: REMOVE ME

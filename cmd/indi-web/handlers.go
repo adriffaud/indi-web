@@ -11,7 +11,7 @@ import (
 )
 
 func (app *application) index(w http.ResponseWriter, r *http.Request) {
-	components.Main().Render(r.Context(), w)
+	components.Main(app.mount).Render(r.Context(), w)
 }
 
 func (app *application) hardware(w http.ResponseWriter, r *http.Request) {

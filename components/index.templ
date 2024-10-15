@@ -1,6 +1,8 @@
 package components
 
-templ Main() {
+import "github.com/adriffaud/indi-web/internal/config"
+
+templ Main(mount config.Mount) {
 	@Root() {
 		<div class="grid grid-cols-1 gap-4 p-1">
 			<div class="flex gap-1 justify-between">
@@ -12,14 +14,22 @@ templ Main() {
 			<div class="grid grid-cols-1 gap-2">
 				<div id="ra-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
 					@label("ra_input", "RA (hh:mm:ss)")
-					@TextInput("ra_input", "", templ.Attributes{"disabled": "true"})
+					@TextInput("ra_input", mount.RA, templ.Attributes{"disabled": "true"})
 				</div>
 				<div id="dec-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
 					@label("dec_input", "DEC (dd:mm:ss)")
-					@TextInput("dec_input", "", templ.Attributes{"disabled": "true"})
+					@TextInput("dec_input", mount.DEC, templ.Attributes{"disabled": "true"})
 				</div>
-				@button("submit", "Déparquer", nil)
-				@button("submit", "Activer suivi", nil)
+				if mount.Parked {
+					@button("submit", "Déparquer", nil)
+				} else {
+					@button("submit", "Parquer", nil)
+				}
+				if mount.Tracking {
+					@button("submit", "Stopper suivi", nil)
+				} else {
+					@button("submit", "Activer suivi", nil)
+				}
 			</div>
 			<div class="grid grid-cols-3 gap-1">
 				<div class="col-start-2">
