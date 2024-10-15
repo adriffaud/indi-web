@@ -72,7 +72,6 @@ templ DeviceView(properties indiclient.Properties, device string) {
 templ Hardware(properties indiclient.Properties) {
 	@Root() {
 		<div class="grid grid-cols-1 gap-2">
-			<div hx-ext="sse" sse-connect="/sse" sse-swap="Hardware"></div>
 			for _, device := range properties.GetDevicesSorted() {
 				@DeviceView(properties, device)
 			}

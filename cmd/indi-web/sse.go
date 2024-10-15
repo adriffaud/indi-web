@@ -10,15 +10,73 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/adriffaud/indi-web/components"
+	"github.com/adriffaud/indi-web/internal/config"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 )
 
 type SSEClient struct {
-	eventChan chan indiclient.Event
+	eventChan  chan templ.Component
+	indiClient *indiclient.Client
+	mount      *config.Mount
 }
 
 func (sse SSEClient) OnNotify(e indiclient.Event) {
-	sse.eventChan <- e
+	var renderList []templ.Component
+
+	switch e.EventType {
+	case indiclient.Timeout:
+		return
+	case indiclient.Add, indiclient.Delete:
+		renderList = append(renderList, components.DeviceView(sse.indiClient.Properties, e.Property.Device))
+	case indiclient.Update:
+		if e.Property.Device == sse.mount.Driver && e.Property.Name == "EQUATORIAL_EOD_COORD" {
+			for _, value := range e.Property.Values {
+				if value.Name == "RA" {
+					formated, err := DecimalToSexagesimal(value.Value)
+					if err != nil {
+						slog.Error("could not convert RA coords in sexagesimal", "err", err, "value", value)
+					}
+					sse.mount.RA = formated
+					renderList = append(renderList, components.TextInput(
+						"ra_input",
+						sse.mount.RA,
+						templ.Attributes{"disabled": "true", "hx-swap-oob": "true"},
+					))
+					if err != nil {
+						slog.Error("failed to convert to HTML", "error", err)
+					}
+				}
+				if value.Name == "DEC" {
+					formated, err := DecimalToSexagesimal(value.Value)
+					if err != nil {
+						slog.Error("could not convert DEC coords in sexagesimal", "err", err, "value", value)
+					}
+					sse.mount.DEC = formated
+					renderList = append(renderList, components.TextInput(
+						"dec_input",
+						sse.mount.DEC,
+						templ.Attributes{"disabled": "true", "hx-swap-oob": "true"},
+					))
+					if err != nil {
+						slog.Error("failed to convert to HTML", "error", err)
+					}
+				}
+			}
+		}
+
+		renderList = append(renderList, components.PropertyValues(e.Property))
+	case indiclient.Message:
+		slog.Debug("📮 Notification", "message", e.Message)
+		renderList = append(renderList, components.Notifications(e.Message))
+	}
+
+	if renderList == nil {
+		return
+	}
+
+	for _, comp := range renderList {
+		sse.eventChan <- comp
+	}
 }
 
 func (app *application) sse(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +90,7 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Transfer-Encoding", "chunked")
 
-	client := SSEClient{eventChan: make(chan indiclient.Event)}
+	client := SSEClient{eventChan: make(chan templ.Component), indiClient: app.indiClient, mount: &app.mount}
 	app.indiClient.Register(client)
 
 	for {
@@ -41,65 +99,15 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 			slog.Debug("SSE client disconnected", "address", r.RemoteAddr)
 			app.indiClient.Unregister(client)
 			return
-		case e := <-client.eventChan:
+		case component := <-client.eventChan:
 			var buf bytes.Buffer
 			var err error
 
-			switch e.EventType {
-			case indiclient.Add, indiclient.Delete:
-				err = components.DeviceView(app.indiClient.Properties, e.Property.Device).Render(r.Context(), &buf)
-			case indiclient.Update:
-				err = components.PropertyValues(e.Property).Render(r.Context(), &buf)
-
-				if e.Property.Device == app.mount.Driver && e.Property.Name == "EQUATORIAL_EOD_COORD" {
-					var appBuf bytes.Buffer
-
-					for _, value := range e.Property.Values {
-						if value.Name == "RA" {
-							formated, err := DecimalToSexagesimal(value.Value)
-							if err != nil {
-								slog.Error("could not convert RA coords in sexagesimal", "err", err, "value", value)
-							}
-							app.mount.RA = formated
-							err = components.TextInput(
-								"ra_input",
-								app.mount.RA,
-								templ.Attributes{"disabled": "true", "hx-swap-oob": "true"},
-							).Render(r.Context(), &appBuf)
-							if err != nil {
-								slog.Error("failed to convert to HTML", "error", err)
-							}
-						}
-						if value.Name == "DEC" {
-							formated, err := DecimalToSexagesimal(value.Value)
-							if err != nil {
-								slog.Error("could not convert DEC coords in sexagesimal", "err", err, "value", value)
-							}
-							app.mount.DEC = formated
-							err = components.TextInput(
-								"dec_input",
-								app.mount.DEC,
-								templ.Attributes{"disabled": "true", "hx-swap-oob": "true"},
-							).Render(r.Context(), &appBuf)
-							if err != nil {
-								slog.Error("failed to convert to HTML", "error", err)
-							}
-						}
-
-						fmt.Fprint(w, "event: Mount\n")
-						fmt.Fprintf(w, "data: %s\n\n", appBuf.String())
-						w.(http.Flusher).Flush()
-					}
-				}
-			case indiclient.Message:
-				slog.Debug("📮 Notification", "message", e.Message)
-				err = components.Notifications(e.Message).Render(r.Context(), &buf)
-			}
-
+			component.Render(r.Context(), &buf)
 			if err != nil {
 				slog.Error("failed to convert to HTML", "error", err)
 			}
-			fmt.Fprint(w, "event: Hardware\n")
+
 			fmt.Fprintf(w, "data: %s\n\n", buf.String())
 			w.(http.Flusher).Flush()
 		}
