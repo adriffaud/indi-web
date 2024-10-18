@@ -97,7 +97,7 @@ func (app *application) INDIServer(w http.ResponseWriter, r *http.Request) {
 	// TODO: Wait for server start before creating the client
 	time.Sleep(40 * time.Millisecond)
 
-	client, err := indiclient.New("localhost:7624")
+	client, err := indiclient.New("localhost:7624", app.eventChan)
 	app.indiClient = client
 	if err != nil {
 		slog.Info("could not start INDI client", "error", err)

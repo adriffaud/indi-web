@@ -8,25 +8,19 @@ import (
 	"os"
 	"time"
 
+	"github.com/a-h/templ"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
 	"github.com/adriffaud/indi-web/internal/mount"
-	"github.com/lmittmann/tint"
+	"github.com/adriffaud/indi-web/internal/sse"
 )
 
 type application struct {
-	indiClient *indiclient.Client
-	mount      mount.Mount
-}
-
-func (app application) OnNotify(e indiclient.Event) {
-	if e.EventType == indiclient.Timeout && app.mount.Driver != "" && !app.mount.Connected {
-		slog.Debug("🤓 Mount not connected, connecting...")
-		err := app.indiClient.Connect(app.mount.Driver)
-		if err != nil {
-			slog.Error("🔴 Could not automatically connect to mount", "err", err)
-		}
-	}
+	indiClient           *indiclient.Client
+	sseConnectionManager sse.SSEConnectionManager
+	eventChan            chan indiclient.Event
+	htmlChan             chan templ.Component
+	mount                *mount.Mount
 }
 
 var (
@@ -39,11 +33,18 @@ func main() {
 	flag.IntVar(&port, "port", 8080, "server port")
 	flag.Parse()
 
-	logger := slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelDebug, TimeFormat: time.Kitchen}))
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	slog.SetDefault(logger)
 
-	app := &application{mount: mount.NewMount()}
-	app.mount.Driver = "Telescope Simulator"
+	htmlChan := make(chan templ.Component)
+	eventChan := make(chan indiclient.Event)
+
+	app := &application{
+		htmlChan:             htmlChan,
+		eventChan:            eventChan,
+		sseConnectionManager: sse.NewSSEConnectionManager(htmlChan),
+		mount:                mount.NewMount("Telescope Simulator", eventChan, htmlChan),
+	}
 
 	// TODO: REMOVE ME
 	// TEMP AUTOSTART
@@ -55,18 +56,15 @@ func main() {
 
 	time.Sleep(40 * time.Millisecond)
 
-	client, err := indiclient.New("localhost:7624")
+	client, err := indiclient.New("localhost:7624", app.eventChan)
 	if err != nil {
 		slog.Info("could not start INDI client", "error", err)
 		return
 	}
 	app.indiClient = client
-	app.mount.SetClient(client)
-
+	app.mount.SetClient(app.indiClient)
 	app.indiClient.GetProperties()
-	app.indiClient.Register(app)
 
-	slog.Debug("INDI client connected")
 	// TEMP AUTOSTART
 
 	server := &http.Server{

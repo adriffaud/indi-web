@@ -8,7 +8,6 @@ import (
 	"net"
 	"slices"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -16,12 +15,11 @@ const timeout = 2 * time.Second
 
 type Client struct {
 	conn       net.Conn
+	eventChan  chan Event
 	Properties Properties
-	observers  map[Observer]struct{}
-	mu         sync.Mutex
 }
 
-func New(address string) (*Client, error) {
+func New(address string, eventChan chan Event) (*Client, error) {
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		return nil, err
@@ -29,8 +27,8 @@ func New(address string) (*Client, error) {
 
 	client := &Client{
 		conn:       conn,
+		eventChan:  eventChan,
 		Properties: make([]Property, 0),
-		observers:  map[Observer]struct{}{},
 	}
 
 	go client.listen(conn)
@@ -64,7 +62,7 @@ func (c *Client) NewPropertyValue(selector PropertySelector) error {
 
 	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">%s</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.ValueName, newValue)
 
-	slog.Debug("sending new property value", "selector", selector, "xml", xml)
+	// slog.Debug("sending new property value", "selector", selector, "xml", xml)
 
 	return c.sendMessage(xml)
 }
@@ -87,7 +85,7 @@ func (c *Client) listen(reader io.Reader) {
 		for {
 			<-inactivityTimer.C
 			slog.Debug("😴😴 connection idle")
-			c.Notify(Event{EventType: Timeout})
+			c.eventChan <- Event{EventType: Timeout}
 		}
 	}()
 
@@ -184,7 +182,7 @@ func (c *Client) listen(reader io.Reader) {
 			case "message":
 				for _, attr := range se.Attr {
 					if attr.Name.Local == "message" {
-						c.Notify(Event{EventType: Message, Message: attr.Value})
+						c.eventChan <- Event{EventType: Message, Message: attr.Value}
 					}
 				}
 			default:
@@ -212,13 +210,13 @@ func (c *Client) listen(reader io.Reader) {
 
 func (c *Client) addToProperties(property Property) {
 	c.delFromProperties(property.Device, property.Name)
-	slog.Debug("adding property", "property", property)
+	// slog.Debug("adding property", "property", property)
 	c.Properties = append(c.Properties, property)
-	c.Notify(Event{EventType: Add, Property: property})
+	c.eventChan <- Event{EventType: Add, Property: property}
 }
 
 func (c *Client) delFromProperties(device, name string) {
-	slog.Debug("deleting property", "device", device, "name", name)
+	// slog.Debug("deleting property", "device", device, "name", name)
 	propIdx := slices.IndexFunc(c.Properties, func(p Property) bool { return p.Device == device && p.Name == name })
 
 	if propIdx < 0 {
@@ -226,7 +224,7 @@ func (c *Client) delFromProperties(device, name string) {
 	}
 
 	prop := c.Properties.FindProperty(PropertySelector{Device: device, Name: name})
-	c.Notify(Event{EventType: Delete, Property: *prop})
+	c.eventChan <- Event{EventType: Delete, Property: *prop}
 
 	c.Properties = append(c.Properties[:propIdx], c.Properties[propIdx+1:]...)
 }
@@ -246,25 +244,5 @@ func (c *Client) updatePropertyValues(property Property) {
 		prop.Values[oldValueIdx].Value = newValue.Value
 	}
 
-	c.Notify(Event{EventType: Update, Property: *prop})
-}
-
-func (c *Client) Register(o Observer) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.observers[o] = struct{}{}
-	slog.Debug("➕ Adding observer", "count", len(c.observers))
-}
-
-func (c *Client) Unregister(o Observer) {
-	delete(c.observers, o)
-	slog.Debug("➖ Removing observer", "count", len(c.observers))
-}
-
-func (c *Client) Notify(e Event) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	for o := range c.observers {
-		o.OnNotify(e)
-	}
+	c.eventChan <- Event{EventType: Update, Property: *prop}
 }
