@@ -36,14 +36,14 @@ func NewMount(driver string, eventChan chan indiclient.Event, htmlChan chan temp
 	go func() {
 		for {
 			event := <-mount.eventChan
-			mount.OnNotify(event)
+			mount.onEvent(event)
 		}
 	}()
 
 	return &mount
 }
 
-func (m *Mount) OnNotify(event indiclient.Event) {
+func (m *Mount) onEvent(event indiclient.Event) {
 	if event.EventType == indiclient.Timeout && !m.Connected {
 		slog.Debug("🤓 Mount not connected, connecting...")
 		err := m.client.Connect(m.Driver)
@@ -58,30 +58,23 @@ func (m *Mount) OnNotify(event indiclient.Event) {
 
 	if event.Property.Name == "EQUATORIAL_EOD_COORD" {
 		for _, value := range event.Property.Values {
+			formated, err := coordconv.DecimalToSexagesimal(value.Value)
+			if err != nil {
+				slog.Error("could not convert coords in sexagesimal", "err", err, "name", value.Name, "value", value)
+			}
+
+			var component templ.Component
+
 			if value.Name == "RA" {
-				formated, err := coordconv.DecimalToSexagesimal(value.Value)
-				if err != nil {
-					slog.Error("could not convert RA coords in sexagesimal", "err", err, "value", value)
-				}
 				m.RA = formated
-				component := components.TextInput("ra_input", m.RA, templ.Attributes{"disabled": "true", "hx-swap-oob": "true"})
-				m.htmlChan <- component
-				if err != nil {
-					slog.Error("failed to convert to HTML", "error", err)
-				}
+				component = components.TextInput("ra_input", m.RA, templ.Attributes{"disabled": "true", "hx-swap-oob": "true"})
 			}
 			if value.Name == "DEC" {
-				formated, err := coordconv.DecimalToSexagesimal(value.Value)
-				if err != nil {
-					slog.Error("could not convert DEC coords in sexagesimal", "err", err, "value", value)
-				}
 				m.DEC = formated
-				component := components.TextInput("dec_input", m.DEC, templ.Attributes{"disabled": "true", "hx-swap-oob": "true"})
-				m.htmlChan <- component
-				if err != nil {
-					slog.Error("failed to convert to HTML", "error", err)
-				}
+				component = components.TextInput("dec_input", m.DEC, templ.Attributes{"disabled": "true", "hx-swap-oob": "true"})
 			}
+
+			m.htmlChan <- component
 		}
 	}
 
@@ -90,10 +83,6 @@ func (m *Mount) OnNotify(event indiclient.Event) {
 func (m *Mount) SetClient(client *indiclient.Client) {
 	m.client = client
 }
-
-func (m Mount) Connect() {}
-
-func (m Mount) Disconnect() {}
 
 func (m Mount) Park() {}
 
