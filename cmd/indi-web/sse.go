@@ -9,15 +9,16 @@ import (
 	"strconv"
 
 	"github.com/a-h/templ"
-	"github.com/adriffaud/indi-web/components"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	"github.com/adriffaud/indi-web/internal/mount"
+	"github.com/adriffaud/indi-web/ui/components"
+	"github.com/adriffaud/indi-web/ui/pages"
 )
 
 type SSEClient struct {
 	eventChan  chan templ.Component
 	indiClient *indiclient.Client
-	mount      *mount.Mount
+	mount      mount.Mount
 }
 
 func (sse SSEClient) OnNotify(e indiclient.Event) {
@@ -27,7 +28,7 @@ func (sse SSEClient) OnNotify(e indiclient.Event) {
 	case indiclient.Timeout:
 		return
 	case indiclient.Add, indiclient.Delete:
-		renderList = append(renderList, components.DeviceView(sse.indiClient.Properties, e.Property.Device))
+		renderList = append(renderList, pages.DeviceView(sse.indiClient.Properties, e.Property.Device))
 	case indiclient.Update:
 		if e.Property.Device == sse.mount.Driver && e.Property.Name == "EQUATORIAL_EOD_COORD" {
 			for _, value := range e.Property.Values {
@@ -64,10 +65,10 @@ func (sse SSEClient) OnNotify(e indiclient.Event) {
 			}
 		}
 
-		renderList = append(renderList, components.PropertyValues(e.Property))
+		renderList = append(renderList, pages.PropertyValues(e.Property))
 	case indiclient.Message:
 		slog.Debug("📮 Notification", "message", e.Message)
-		renderList = append(renderList, components.Notifications(e.Message))
+		renderList = append(renderList, pages.Notifications(e.Message))
 	}
 
 	if renderList == nil {
@@ -90,7 +91,7 @@ func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Transfer-Encoding", "chunked")
 
-	client := SSEClient{eventChan: make(chan templ.Component), indiClient: app.indiClient, mount: &app.mount}
+	client := SSEClient{eventChan: make(chan templ.Component), indiClient: app.indiClient, mount: app.mount}
 	app.indiClient.Register(client)
 
 	for {

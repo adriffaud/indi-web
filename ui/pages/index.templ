@@ -1,34 +1,35 @@
-package components
+package pages
 
 import "github.com/adriffaud/indi-web/internal/mount"
+import "github.com/adriffaud/indi-web/ui/components"
 
 templ Main(mount mount.Mount) {
 	@Root() {
 		<div class="grid grid-cols-1 gap-4 p-1">
 			<div class="flex gap-1 justify-between">
-				@link("/hardware", "Matériel", nil)
+				@components.Link("/hardware", "Matériel", nil)
 				<form method="POST" action="/setup">
-					@button("submit", "Arrêter INDI", nil)
+					@components.Button("submit", "Arrêter INDI", nil)
 				</form>
 			</div>
 			<div class="grid grid-cols-1 gap-2">
 				<div id="ra-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-					@label("ra_input", "RA (hh:mm:ss)")
-					@TextInput("ra_input", mount.RA, templ.Attributes{"disabled": "true"})
+					@components.Label("ra_input", "RA (hh:mm:ss)")
+					@components.TextInput("ra_input", mount.RA, templ.Attributes{"disabled": "true"})
 				</div>
 				<div id="dec-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-					@label("dec_input", "DEC (dd:mm:ss)")
-					@TextInput("dec_input", mount.DEC, templ.Attributes{"disabled": "true"})
+					@components.Label("dec_input", "DEC (dd:mm:ss)")
+					@components.TextInput("dec_input", mount.DEC, templ.Attributes{"disabled": "true"})
 				</div>
 				if mount.Parked {
-					@button("submit", "Déparquer", nil)
+					@components.Button("submit", "Déparquer", nil)
 				} else {
-					@button("submit", "Parquer", nil)
+					@components.Button("submit", "Parquer", nil)
 				}
 				if mount.Tracking {
-					@button("submit", "Stopper suivi", nil)
+					@components.Button("submit", "Stopper suivi", nil)
 				} else {
-					@button("submit", "Activer suivi", nil)
+					@components.Button("submit", "Activer suivi", nil)
 				}
 			</div>
 			<div class="grid grid-cols-3 gap-1">

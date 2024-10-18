@@ -5,17 +5,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/adriffaud/indi-web/components"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	"github.com/adriffaud/indi-web/ui/pages"
 )
 
 func (app *application) index(w http.ResponseWriter, r *http.Request) {
-	components.Main(app.mount).Render(r.Context(), w)
+	pages.Main(app.mount).Render(r.Context(), w)
 }
 
 func (app *application) hardware(w http.ResponseWriter, r *http.Request) {
-	components.Hardware(app.indiClient.Properties).Render(r.Context(), w)
+	pages.Hardware(app.indiClient.Properties).Render(r.Context(), w)
 }
 
 func (app *application) setup(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +33,7 @@ func (app *application) setup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	components.Setup(driverGroups, devices).Render(r.Context(), w)
+	pages.Setup(driverGroups, devices).Render(r.Context(), w)
 }
 
 func (app *application) indiAction(w http.ResponseWriter, r *http.Request) {

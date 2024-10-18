@@ -1,12 +1,13 @@
-package components
+package pages
 
 import (
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	"github.com/adriffaud/indi-web/ui/components"
 	"strings"
 )
 
 templ driverSelector(group string, drivers []indiserver.Device, selection indiserver.Device) {
-	@label(strings.ToLower(group)+"_select", group)
+	@components.Label(strings.ToLower(group)+"_select", group)
 	<select
 		id={ strings.ToLower(group) + "_select" }
 		name={ strings.ToLower(group) + "_select" }
@@ -30,17 +31,17 @@ templ driverSelector(group string, drivers []indiserver.Device, selection indise
 templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver.Device) {
 	@Root() {
 		<div class="flex justify-center items-center h-screen">
-			@card() {
+			@components.Card() {
 				<form method="post">
 					<fieldset class="w-full">
 						<legend class="text-lg font-bold dark:text-white">Matériel</legend>
 						<div class="py-4">
-							@label("date-time", "Date/Heure")
-							@TextInput("date-time", "2023-11-01 20:45", templ.Attributes{"disabled": true})
-							@label("latitude", "Latitude")
-							@TextInput("latitude", "N 47º 14' 25", templ.Attributes{"disabled": true})
-							@label("longitude", "Longitude")
-							@TextInput("longitude", "E 05º 55' 57", templ.Attributes{"disabled": true})
+							@components.Label("date-time", "Date/Heure")
+							@components.TextInput("date-time", "2023-11-01 20:45", templ.Attributes{"disabled": true})
+							@components.Label("latitude", "Latitude")
+							@components.TextInput("latitude", "N 47º 14' 25", templ.Attributes{"disabled": true})
+							@components.Label("longitude", "Longitude")
+							@components.TextInput("longitude", "E 05º 55' 57", templ.Attributes{"disabled": true})
 							<hr class="border-gray-200 dark:border-gray-700 my-4 mt-6"/>
 							@driverSelector("Monture", driversGroups["Telescopes"], devices["mount"])
 							@driverSelector("Caméra", driversGroups["CCDs"], devices["ccd"])
@@ -48,7 +49,7 @@ templ Setup(driversGroups indiserver.DeviceGroups, devices map[string]indiserver
 							@driverSelector("Focuseur", driversGroups["Focusers"], devices["focuser"])
 						</div>
 						<div class="mt-6">
-							@button("submit", "Démarrer", nil)
+							@components.Button("submit", "Démarrer", nil)
 						</div>
 					</fieldset>
 				</form>

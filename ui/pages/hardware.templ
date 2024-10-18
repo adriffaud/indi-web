@@ -1,9 +1,10 @@
-package components
+package pages
 
 import (
 	"fmt"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	"strings"
+	"github.com/adriffaud/indi-web/ui/components"
 )
 
 func deviceID(device string) string {
@@ -23,8 +24,8 @@ func uniqueValueName(property indiclient.Property, key string) string {
 
 templ TextProperty(name string, value indiclient.Value, enabled bool) {
 	<div id={ name } hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-		@label(name+"_input", value.Label)
-		@TextInput(name+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", enabled)})
+		@components.Label(name+"_input", value.Label)
+		@components.TextInput(name+"_input", value.Value, templ.Attributes{"disabled": templ.KV("true", enabled)})
 	</div>
 }
 
@@ -37,7 +38,7 @@ templ PropertyValues(property indiclient.Property) {
 		case indiclient.Switch:
 			<div id={ uniquePropertyID(property) } hx-swap-oob="true" class="grid grid-cols-2 gap-2">
 				for _, value := range property.Values {
-					@button(
+					@components.Button(
 						"button",
 						value.Label,
 						templ.Attributes{
