@@ -8,15 +8,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/adriffaud/indi-web/internal/config"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
+	"github.com/adriffaud/indi-web/internal/mount"
 	"github.com/lmittmann/tint"
 )
 
 type application struct {
 	indiClient *indiclient.Client
-	mount      config.Mount
+	mount      mount.Mount
 }
 
 func (app application) OnNotify(e indiclient.Event) {
@@ -42,7 +42,7 @@ func main() {
 	logger := slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelDebug, TimeFormat: time.Kitchen}))
 	slog.SetDefault(logger)
 
-	app := &application{mount: config.NewMount()}
+	app := &application{mount: mount.NewMount()}
 	app.mount.Driver = "Telescope Simulator"
 
 	// TODO: REMOVE ME

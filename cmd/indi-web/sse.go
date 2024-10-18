@@ -10,14 +10,14 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/adriffaud/indi-web/components"
-	"github.com/adriffaud/indi-web/internal/config"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
+	"github.com/adriffaud/indi-web/internal/mount"
 )
 
 type SSEClient struct {
 	eventChan  chan templ.Component
 	indiClient *indiclient.Client
-	mount      *config.Mount
+	mount      *mount.Mount
 }
 
 func (sse SSEClient) OnNotify(e indiclient.Event) {
