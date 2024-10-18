@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/adriffaud/indi-web/internal/debug"
 	indiclient "github.com/adriffaud/indi-web/internal/indi-client"
 	indiserver "github.com/adriffaud/indi-web/internal/indi-server"
 	"github.com/adriffaud/indi-web/internal/mount"
@@ -62,6 +63,7 @@ func main() {
 		return
 	}
 	app.indiClient = client
+	debug.DebugWatcher(client, eventChan, htmlChan)
 	app.mount.SetClient(app.indiClient)
 	app.indiClient.GetProperties()
 

@@ -5,26 +5,6 @@ import (
 	"net/http"
 )
 
-// func (sse SSEClient) OnNotify(e indiclient.Event) {
-// 	var component templ.Component
-//
-// 	switch e.EventType {
-// 	case indiclient.Add, indiclient.Delete:
-// 		component = components.DeviceView(sse.indiClient.Properties, e.Property.Device)
-// 	case indiclient.Update:
-// 		component = components.PropertyValues(e.Property)
-// 	case indiclient.Message:
-// 		slog.Debug("📮 Notification", "message", e.Message)
-// 		component = components.Notifications(e.Message)
-// 	}
-//
-// 	if component == nil {
-// 		return
-// 	}
-//
-// 	sse.eventChan <- component
-// }
-
 func (app *application) sse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Expose-Headers", "Content-Type")
