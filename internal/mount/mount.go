@@ -22,6 +22,10 @@ func NewMount() Mount {
 	}
 }
 
+func (m Mount) SetClient(client *indiclient.Client) {
+	m.client = client
+}
+
 func (m Mount) Connect() {}
 
 func (m Mount) Disconnect() {}

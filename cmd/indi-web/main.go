@@ -61,6 +61,8 @@ func main() {
 		return
 	}
 	app.indiClient = client
+	app.mount.SetClient(client)
+
 	app.indiClient.GetProperties()
 	app.indiClient.Register(app)
 
