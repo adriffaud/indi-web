@@ -58,7 +58,8 @@ test/cover:
 ## build: build the application
 .PHONY: build
 build:
-	go run github.com/a-h/templ/cmd/templ@v0.2.778 generate
+	npx tailwindcss -i ./input.css -o ./assets/tailwind.css --minify
+	go run github.com/a-h/templ/cmd/templ@latest generate
 	go build -o=/tmp/bin/${BINARY_NAME} ${MAIN_PACKAGE_PATH}
 
 ## run: run the  application
@@ -70,7 +71,7 @@ live/templ:
 	templ generate --watch --proxy="http://localhost:8080" --open-browser=false
 
 live/server:
-	go run github.com/air-verse/air@v1.52.3 \
+	go run github.com/air-verse/air@latest \
 	--build.cmd "go build -o tmp/indi-web ./cmd/indi-web/" --build.bin "tmp/indi-web" --build.delay "100" \
 	--build.exclude_dir "node_modules" \
 	--build.include_ext "go" \
@@ -81,7 +82,7 @@ live/tailwind:
 	npx tailwindcss -i ./input.css -o ./assets/tailwind.css --minify --watch
 
 live/sync_assets:
-	go run github.com/air-verse/air@v1.52.3 \
+	go run github.com/air-verse/air@latest \
 	--build.cmd "templ generate --notify-proxy" \
 	--build.bin "true" \
 	--build.delay "100" \

@@ -1,11 +1,15 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/adriffaud/indi-web/assets"
+)
 
 func (app application) routes() http.Handler {
 	router := http.NewServeMux()
 
-	fileServer := http.FileServer(http.Dir("assets"))
+	fileServer := http.FileServer(http.FS(assets.Content))
 	router.Handle("GET /static/", http.StripPrefix("/static", fileServer))
 
 	router.HandleFunc("GET /", app.index)
