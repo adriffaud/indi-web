@@ -16,6 +16,7 @@ type Mount struct {
 	Connected bool
 	Driver    string
 	Parked    bool
+	Parking   bool
 	Tracking  bool
 	RA        string
 	DEC       string
@@ -29,6 +30,7 @@ func NewMount(driver string, eventChan chan indiclient.Event, htmlChan chan temp
 		RA:        "00:00:00",
 		DEC:       "00:00:00",
 		Parked:    true,
+		Parking:   false,
 		Tracking:  false,
 		Connected: false,
 	}
@@ -50,13 +52,15 @@ func (m *Mount) onEvent(event indiclient.Event) {
 		if err != nil {
 			slog.Error("🔴 Could not automatically connect to mount", "err", err)
 		}
+		m.Connected = true
 	}
 
-	if event.EventType != indiclient.Update || m.Driver == "" || event.Property.Device != m.Driver {
+	if m.Driver == "" || event.Property.Device != m.Driver {
 		return
 	}
 
-	if event.Property.Name == "EQUATORIAL_EOD_COORD" {
+	switch event.Property.Name {
+	case "EQUATORIAL_EOD_COORD":
 		for _, value := range event.Property.Values {
 			formated, err := coordconv.DecimalToSexagesimal(value.Value)
 			if err != nil {
@@ -76,18 +80,114 @@ func (m *Mount) onEvent(event indiclient.Event) {
 
 			m.htmlChan <- component
 		}
+	case "TELESCOPE_PARK":
+		slog.Debug("⚠️ TELESCOPE_PARK event", "property", event.Property)
+		for _, value := range event.Property.Values {
+			if value.Value != "On" {
+				continue
+			}
+
+			var component templ.Component
+
+			if value.Name == "UNPARK" {
+				m.Parked = false
+				component = components.Button("button", "Parquer", templ.Attributes{
+					"id":          "park",
+					"hx-swap-oob": "true",
+					"hx-swap":     "none",
+					"hx-vals":     "{\"action\": \"park\"}",
+					"hx-post":     "/mount/action",
+				})
+			} else if value.Name == "PARK" {
+				m.Parked = true
+				m.Parking = false
+				component = components.Button("button", "Déparquer", templ.Attributes{
+					"id":          "park",
+					"hx-swap-oob": "true",
+					"hx-swap":     "none",
+					"hx-vals":     "{\"action\": \"unpark\"}",
+					"hx-post":     "/mount/action",
+				})
+			}
+
+			m.htmlChan <- component
+		}
+	default:
+		slog.Debug("🚧 Unhandled mount event", "name", event.Property.Name)
 	}
 
 }
 
 func (m *Mount) SetClient(client *indiclient.Client) {
+	slog.Debug("SetClient", "mount", m)
 	m.client = client
 }
 
-func (m Mount) Park() {}
+func (m Mount) Park() {
+	if m.Parked || m.Parking {
+		return
+	}
 
-func (m Mount) Unpark() {}
+	m.Parking = true
+	err := m.client.NewPropertyValue(indiclient.PropertySelector{Device: m.Driver, Name: "TELESCOPE_PARK", ValueName: "PARK"})
+	if err != nil {
+		slog.Error("🔴 could not start mount parking", "error", err)
+	}
+}
 
-func (m Mount) StartTracking() {}
+func (m Mount) Unpark() {
+	if !m.Parked {
+		return
+	}
 
-func (m Mount) StopTracking() {}
+	err := m.client.NewPropertyValue(indiclient.PropertySelector{Device: m.Driver, Name: "TELESCOPE_PARK", ValueName: "UNPARK"})
+	if err != nil {
+		slog.Error("🔴 could not start mount unparking", "error", err)
+	}
+}
+
+func (m Mount) StartTracking() {
+	if m.Tracking || m.Parked || m.Parking {
+		return
+	}
+
+	err := m.client.NewPropertyValue(indiclient.PropertySelector{Device: m.Driver, Name: "TELESCOPE_TRACK_STATE", ValueName: "TRACK_ON"})
+	if err != nil {
+		slog.Error("🔴 could not start tracking", "error", err)
+	}
+
+	// INDI doesn't update property state for tracking state, so updating state manually.
+	m.Tracking = true
+
+	component := components.Button("button", "Stopper suivi", templ.Attributes{
+		"id":          "track",
+		"hx-swap-oob": "true",
+		"hx-swap":     "none",
+		"hx-vals":     "{\"action\": \"trackoff\"}",
+		"hx-post":     "/mount/action",
+	})
+	m.htmlChan <- component
+}
+
+func (m Mount) StopTracking() {
+	if !m.Tracking {
+		return
+	}
+
+	err := m.client.NewPropertyValue(indiclient.PropertySelector{Device: m.Driver, Name: "TELESCOPE_TRACK_STATE", ValueName: "TRACK_OFF"})
+	if err != nil {
+		slog.Error("🔴 could not stop tracking", "error", err)
+	}
+
+	// INDI doesn't update property state for tracking state, so updating state manually.
+	m.Tracking = false
+
+	component := components.Button("button", "Démarrer suivi", templ.Attributes{
+		"id":          "track",
+		"hx-swap-oob": "true",
+		"hx-swap":     "none",
+		"hx-vals":     "{\"action\": \"trackon\"}",
+		"hx-post":     "/mount/action",
+	})
+	m.htmlChan <- component
+}

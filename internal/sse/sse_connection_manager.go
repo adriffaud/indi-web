@@ -32,13 +32,13 @@ func NewSSEConnectionManager(htmlChan chan templ.Component) SSEConnectionManager
 }
 
 func (mgr SSEConnectionManager) Register(writer http.ResponseWriter, request *http.Request) {
-	slog.Debug("✅ Registering SSE client", "address", request.RemoteAddr)
 	mgr.clients[request.RemoteAddr] = SSEClient{writer: writer, request: request}
+	slog.Debug("✅ Registering SSE client", "address", request.RemoteAddr, "client count", len(mgr.clients))
 }
 
 func (mgr SSEConnectionManager) Unregister(addr string) {
-	slog.Debug("🚮 Unregistering SSE client", "address", addr)
 	delete(mgr.clients, addr)
+	slog.Debug("🚮 Unregistering SSE client", "address", addr, "client count", len(mgr.clients))
 }
 
 func (mgr SSEConnectionManager) sendHTML(component templ.Component) {

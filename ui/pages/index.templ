@@ -22,14 +22,39 @@ templ Main(mount *mount.Mount) {
 					@components.TextInput("dec_input", mount.DEC, templ.Attributes{"disabled": "true"})
 				</div>
 				if mount.Parked {
-					@components.Button("submit", "Déparquer", nil)
+					@components.Button("button", "Déparquer", templ.Attributes{
+						"id":          "park",
+						"hx-swap-oob": "true",
+						"hx-swap":     "none",
+						"hx-vals":     "{\"action\": \"unpark\"}",
+						"hx-post":     "/mount/action",
+					})
 				} else {
-					@components.Button("submit", "Parquer", nil)
+					@components.Button("button", "Parquer", templ.Attributes{
+						"id":          "park",
+						"hx-swap-oob": "true",
+						"hx-swap":     "none",
+						"hx-vals":     "{\"action\": \"park\"}",
+						"hx-post":     "/mount/action",
+					})
 				}
 				if mount.Tracking {
-					@components.Button("submit", "Stopper suivi", nil)
+					@components.Button("button", "Stopper suivi", templ.Attributes{
+						"id":          "track",
+						"hx-swap-oob": "true",
+						"hx-swap":     "none",
+						"hx-vals":     "{\"action\": \"trackoff\"}",
+						"hx-post":     "/mount/action",
+					})
 				} else {
-					@components.Button("submit", "Activer suivi", nil)
+					@components.Button("button", "Activer suivi", templ.Attributes{
+						"id":          "track",
+						"hx-swap-oob": "true",
+						"hx-swap":     "none",
+						"hx-vals":     "{\"action\": \"trackon\"}",
+						"hx-post":     "/mount/action",
+						"disabled":    templ.KV("true", mount.Parked),
+					})
 				}
 			</div>
 			<div class="grid grid-cols-3 gap-1">

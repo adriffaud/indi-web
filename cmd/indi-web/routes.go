@@ -12,6 +12,7 @@ func (app application) routes() http.Handler {
 	router.HandleFunc("POST /", app.index)
 	router.HandleFunc("GET /hardware", app.hardware)
 	router.HandleFunc("POST /indi/action", app.indiAction)
+	router.HandleFunc("POST /mount/action", app.mountAction)
 	router.HandleFunc("GET /setup", app.setup)
 	router.HandleFunc("POST /setup", app.INDIServer)
 

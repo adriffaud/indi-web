@@ -14,6 +14,25 @@ func (app *application) index(w http.ResponseWriter, r *http.Request) {
 	pages.Main(app.mount).Render(r.Context(), w)
 }
 
+func (app *application) mountAction(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "unable to parse form", http.StatusBadRequest)
+		return
+	}
+
+	switch r.FormValue("action") {
+	case "unpark":
+		app.mount.Unpark()
+	case "park":
+		app.mount.Park()
+	case "trackon":
+		app.mount.StartTracking()
+	case "trackoff":
+		app.mount.StopTracking()
+	}
+}
+
 func (app *application) hardware(w http.ResponseWriter, r *http.Request) {
 	pages.Hardware(app.indiClient.Properties).Render(r.Context(), w)
 }
