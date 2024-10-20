@@ -87,30 +87,15 @@ func (m *Mount) onEvent(event indiclient.Event) {
 				continue
 			}
 
-			var component templ.Component
-
 			if value.Name == "UNPARK" {
 				m.Parked = false
-				component = components.Button("button", "Parquer", templ.Attributes{
-					"id":          "park",
-					"hx-swap-oob": "true",
-					"hx-swap":     "none",
-					"hx-vals":     "{\"action\": \"park\"}",
-					"hx-post":     "/mount/action",
-				})
 			} else if value.Name == "PARK" {
 				m.Parked = true
 				m.Parking = false
-				component = components.Button("button", "Déparquer", templ.Attributes{
-					"id":          "park",
-					"hx-swap-oob": "true",
-					"hx-swap":     "none",
-					"hx-vals":     "{\"action\": \"unpark\"}",
-					"hx-post":     "/mount/action",
-				})
 			}
 
-			m.htmlChan <- component
+			m.htmlChan <- components.ParkButton(m.Parked, m.Parking)
+			m.htmlChan <- components.TrackButton(m.Tracking, m.Parked)
 		}
 	default:
 		slog.Debug("🚧 Unhandled mount event", "name", event.Property.Name)
@@ -119,11 +104,10 @@ func (m *Mount) onEvent(event indiclient.Event) {
 }
 
 func (m *Mount) SetClient(client *indiclient.Client) {
-	slog.Debug("SetClient", "mount", m)
 	m.client = client
 }
 
-func (m Mount) Park() {
+func (m *Mount) Park() {
 	if m.Parked || m.Parking {
 		return
 	}
@@ -135,7 +119,7 @@ func (m Mount) Park() {
 	}
 }
 
-func (m Mount) Unpark() {
+func (m *Mount) Unpark() {
 	if !m.Parked {
 		return
 	}
@@ -146,7 +130,7 @@ func (m Mount) Unpark() {
 	}
 }
 
-func (m Mount) StartTracking() {
+func (m *Mount) StartTracking() {
 	if m.Tracking || m.Parked || m.Parking {
 		return
 	}
@@ -158,18 +142,10 @@ func (m Mount) StartTracking() {
 
 	// INDI doesn't update property state for tracking state, so updating state manually.
 	m.Tracking = true
-
-	component := components.Button("button", "Stopper suivi", templ.Attributes{
-		"id":          "track",
-		"hx-swap-oob": "true",
-		"hx-swap":     "none",
-		"hx-vals":     "{\"action\": \"trackoff\"}",
-		"hx-post":     "/mount/action",
-	})
-	m.htmlChan <- component
+	m.htmlChan <- components.TrackButton(m.Tracking, m.Parked)
 }
 
-func (m Mount) StopTracking() {
+func (m *Mount) StopTracking() {
 	if !m.Tracking {
 		return
 	}
@@ -181,13 +157,5 @@ func (m Mount) StopTracking() {
 
 	// INDI doesn't update property state for tracking state, so updating state manually.
 	m.Tracking = false
-
-	component := components.Button("button", "Démarrer suivi", templ.Attributes{
-		"id":          "track",
-		"hx-swap-oob": "true",
-		"hx-swap":     "none",
-		"hx-vals":     "{\"action\": \"trackon\"}",
-		"hx-post":     "/mount/action",
-	})
-	m.htmlChan <- component
+	m.htmlChan <- components.TrackButton(m.Tracking, m.Parked)
 }

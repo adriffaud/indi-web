@@ -10,16 +10,6 @@ templ Link(to, text string, attrs templ.Attributes) {
 	</a>
 }
 
-templ Button(btnType, text string, attrs templ.Attributes) {
-	<button
-		type={ btnType }
-		class="rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80"
-		{ attrs... }
-	>
-		{ text }
-	</button>
-}
-
 templ TextInput(idStr, value string, attrs templ.Attributes) {
 	<input
 		id={ idStr }

@@ -50,20 +50,8 @@ func (c *Client) Connect(driver string) error {
 
 func (c *Client) NewPropertyValue(selector PropertySelector) error {
 	property := c.Properties.FindProperty(selector)
-
-	var newValue string
-	for _, value := range property.Values {
-		if value.Name == selector.ValueName && value.Value == "Off" {
-			newValue = "On"
-		} else if value.Name == selector.ValueName && value.Value == "On" {
-			newValue = "Off"
-		}
-	}
-
-	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">%s</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.ValueName, newValue)
-
-	// slog.Debug("sending new property value", "selector", selector, "xml", xml)
-
+	xml := fmt.Sprintf("<newSwitchVector device=\"%s\" name=\"%s\"><oneSwitch name=\"%s\">On</oneSwitch></newSwitchVector>", selector.Device, selector.Name, selector.ValueName)
+	slog.Debug("📤 sending new property value", "selector", selector, "property", property, "xml", xml)
 	return c.sendMessage(xml)
 }
 

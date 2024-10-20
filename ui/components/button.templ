@@ -1,0 +1,61 @@
+package components
+
+import "fmt"
+
+templ Button(btnType, text string, attrs templ.Attributes) {
+	<button
+		type={ btnType }
+		class="rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80"
+		{ attrs... }
+	>
+		{ text }
+	</button>
+}
+
+func ParkButton(parked, parking bool) templ.Component {
+	var text string
+	var action string
+
+	if parked {
+		text = "Déparquer"
+		action = "unpark"
+	} else {
+		text = "Parquer"
+		action = "park"
+	}
+
+	attributes := templ.Attributes{
+		"id":          "park",
+		"hx-swap":     "none",
+		"hx-swap-oob": "true",
+		"hx-vals":     fmt.Sprintf("{\"action\": \"%s\"}", action),
+		"hx-post":     "/mount/action",
+		"disabled":    templ.KV("true", parking),
+	}
+
+	return Button("button", text, attributes)
+}
+
+func TrackButton(tracking, parked bool) templ.Component {
+	var text string
+	var action string
+
+	if tracking {
+		text = "Stopper suivi"
+		action = "trackoff"
+	} else {
+		text = "Démarrer suivi"
+		action = "trackon"
+	}
+
+	attributes := templ.Attributes{
+		"id":          "track",
+		"hx-swap":     "none",
+		"hx-swap-oob": "true",
+		"hx-vals":     fmt.Sprintf("{\"action\": \"%s\"}", action),
+		"hx-post":     "/mount/action",
+		"disabled":    templ.KV("true", parked),
+	}
+	return Button("button", text, attributes)
+}
+
