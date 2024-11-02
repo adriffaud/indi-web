@@ -3,7 +3,7 @@ package components
 templ Link(to, text string, attrs templ.Attributes) {
 	<a
 		href={ templ.SafeURL(to) }
-		class="rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80"
+		class="rounded py-2 px-3 text-sm font-semibold leading-6 border border-red-800 disabled:text-red-800/50 active:text-red-600 active:border-red-600"
 		{ attrs... }
 	>
 		{ text }
@@ -15,7 +15,7 @@ templ TextInput(idStr, value string, attrs templ.Attributes) {
 		id={ idStr }
 		value={ value }
 		type="text"
-		class="w-full bg-ctp-surface0 border border-ctp-surface1 rounded py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ctp-lavender focus:border-ctp-lavender disabled:text-ctp-text/30"
+		class="w-full bg-black border border-red-800 rounded py-2 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-800 focus:border-red-800 disabled:border-red-800/50 disabled:text-red-800/80"
 		{ attrs... }
 	/>
 }

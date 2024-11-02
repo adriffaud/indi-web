@@ -5,7 +5,7 @@ import "fmt"
 templ Button(btnType, text string, attrs templ.Attributes) {
 	<button
 		type={ btnType }
-		class="rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80"
+		class="rounded py-2 px-3 text-sm font-semibold leading-6 border border-red-800 disabled:border-red-800/50 disabled:text-red-800/50 active:border-red-600 active:text-red-600"
 		{ attrs... }
 	>
 		{ text }
@@ -58,4 +58,3 @@ func TrackButton(tracking, parked bool) templ.Component {
 	}
 	return Button("button", text, attributes)
 }
-

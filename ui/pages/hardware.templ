@@ -54,10 +54,10 @@ templ PropertyValues(property indiclient.Property) {
 
 templ groupView(properties indiclient.Properties, device string) {
 	for _, group := range properties.GetDeviceGroupsSorted(device) {
-		<h4 class="text-lg font-bold text-ctp-blue pt-4">{ group }</h4>
+		<h4 class="text-lg font-bold pt-4">{ group }</h4>
 		for _, property := range properties.GetPropertiesForDeviceGroup(device,
 	group) {
-			<h5 class="font-bold text-ctp-peach py-2">{ property.Label }</h5>
+			<h5 class="font-bold py-2">{ property.Label }</h5>
 			@PropertyValues(property)
 		}
 	}
@@ -65,7 +65,7 @@ templ groupView(properties indiclient.Properties, device string) {
 
 templ DeviceView(properties indiclient.Properties, device string) {
 	<section id={ deviceID(device) } hx-swap-oob="true" class="grid grid-cols-1 gap-2 p-4">
-		<h3 class="text-ctp-mauve text-2xl font-bold">{ device }</h3>
+		<h3 class="text-2xl font-bold">{ device }</h3>
 		@groupView(properties, device)
 	</section>
 }
