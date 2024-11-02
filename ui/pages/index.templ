@@ -14,12 +14,12 @@ templ Main(mount *mount.Mount) {
 			</div>
 			<div class="grid grid-cols-1 gap-2">
 				<div id="ra-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-					@components.Label("ra_input", "RA (hh:mm:ss)")
-					@components.TextInput("ra_input", mount.RA, templ.Attributes{"disabled": "true"})
+					RA (hh:mm:ss)
+					@components.Span("ra", mount.RA, nil)
 				</div>
 				<div id="dec-position" hx-swap-oob="true" class="grid grid-cols-2 gap-2 items-center">
-					@components.Label("dec_input", "DEC (dd:mm:ss)")
-					@components.TextInput("dec_input", mount.DEC, templ.Attributes{"disabled": "true"})
+					DEC (dd:mm:ss)
+					@components.Span("dec", mount.DEC, nil)
 				</div>
 				@components.ParkButton(mount.Parked, mount.Parking)
 				@components.TrackButton(mount.Tracking, mount.Parked)

@@ -71,11 +71,11 @@ func (m *Mount) onEvent(event indiclient.Event) {
 
 			if value.Name == "RA" {
 				m.RA = formated
-				component = components.TextInput("ra_input", m.RA, templ.Attributes{"disabled": "true", "hx-swap-oob": "true"})
+				component = components.Span("ra", m.RA, templ.Attributes{"hx-swap-oob": "true"})
 			}
 			if value.Name == "DEC" {
 				m.DEC = formated
-				component = components.TextInput("dec_input", m.DEC, templ.Attributes{"disabled": "true", "hx-swap-oob": "true"})
+				component = components.Span("dec", m.DEC, templ.Attributes{"hx-swap-oob": "true"})
 			}
 
 			m.htmlChan <- component
