@@ -1,16 +1,17 @@
 defmodule IndiEx.IndiClient do
-  use GenServer
+  use GenServer, restart: :transient
 
   require Logger
 
   @initial_state %{socket: nil, timer: nil, partial: nil, properties: []}
+  @idle_timeout 5000
 
   def start_link do
-    GenServer.start_link(__MODULE__, @initial_state)
+    GenServer.start_link(__MODULE__, @initial_state, name: __MODULE__)
   end
 
-  def get_properties(pid) do
-    GenServer.cast(pid, {:command, "<getProperties version=\"1.7\" />"})
+  def get_properties() do
+    GenServer.cast(__MODULE__, {:command, "<getProperties version=\"1.7\" />"})
   end
 
   @impl true
@@ -18,13 +19,14 @@ defmodule IndiEx.IndiClient do
     opts = [:binary, active: true]
     {:ok, socket} = :gen_tcp.connect(~c"localhost", 7624, opts)
 
-    new_timer = Process.send_after(self(), {:tcp_idle, socket}, 1000)
+    new_timer = Process.send_after(self(), {:tcp_idle, socket}, @idle_timeout)
     {:ok, partial} = Saxy.Partial.new(IndiEx.IndiXml, [])
     {:ok, %{state | socket: socket, timer: new_timer, partial: partial}}
   end
 
   @impl true
   def handle_cast({:command, cmd}, %{socket: socket} = state) do
+    Logger.debug("📬📬 Sending command: #{cmd}")
     :ok = :gen_tcp.send(socket, cmd)
     {:noreply, state}
   end
@@ -38,7 +40,7 @@ defmodule IndiEx.IndiClient do
     dbg(res)
     {:cont, partial} = res
 
-    new_timer = Process.send_after(self(), {:tcp_idle, socket}, 1000)
+    new_timer = Process.send_after(self(), {:tcp_idle, socket}, @idle_timeout)
     {:noreply, %{state | partial: partial, timer: new_timer}}
   end
 
