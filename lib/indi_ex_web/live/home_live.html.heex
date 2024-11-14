@@ -1,49 +1,77 @@
 <.flash_group flash={@flash} />
-<div class="grid grid-cols-1 gap-4">
-  <div class="flex gap-1 justify-between p-1">
+<div class="grid grid-cols-1 gap-4 p-1">
+  <div class="flex gap-1 justify-between">
     <.link navigate={~p"/hardware"}
-      class="phx-submit-loading:opacity-75 rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 text-ctp-blue active:text-ctp-blue/80 disabled:text-ctp-blue/40">
+      class="phx-submit-loading:opacity-75 rounded py-2 px-3 text-sm font-semibold leading-6 border border-red-800 disabled:text-red-800/50 active:text-red-600 active:border-red-600">
       Matériel
     </.link>
     <.button phx-click="stop-indi">Arrêter INDI</.button>
   </div>
-  <div class="h-80 border border-ctp-surface1 bg-ctp-surface0 shadow">
-    <img class="aspect-auto w-full" />
+  <div class="grid grid-cols-1 gap-2">
+    <div id="ra-position" class="grid grid-cols-2 gap-2 items-center">
+      RA (hh:mm:ss) <span class="font-semibold font-mono">00:00:00</span>
+    </div>
+    <div id="dec-position" class="grid grid-cols-2 gap-2 items-center">
+      DEC (dd:mm:ss) <span class="font-semibold font-mono">00:00:00</span>
+    </div>
+    <.button>Parquer</.button>
+    <.button>Démarrer suivi</.button>
   </div>
-  <div class="grid grid-cols-4 gap-1 px-1">
+  <div class="grid grid-cols-3 gap-1">
     <div class="col-start-2">
-      <button
-        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
-        Haut
+      <button id="mount_north"
+        class="size-full aspect-square rounded py-2 px-3 text-sm font-semibold leading-6 text-red-800 active:text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-full">
+          <path fill-rule="evenodd"
+            d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm.53 5.47a.75.75 0 0 0-1.06 0l-3 3a.75.75 0 1 0 1.06 1.06l1.72-1.72v5.69a.75.75 0 0 0 1.5 0v-5.69l1.72 1.72a.75.75 0 1 0 1.06-1.06l-3-3Z"
+            clip-rule="evenodd">
+          </path>
+        </svg>
       </button>
     </div>
     <div class="row-start-2">
-      <button
-        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
-        Gauche
+      <button id="mount_west"
+        class="size-full aspect-square rounded py-2 px-3 text-sm font-semibold leading-6 text-red-800 active:text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-full">
+          <path fill-rule="evenodd"
+            d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-4.28 9.22a.75.75 0 0 0 0 1.06l3 3a.75.75 0 1 0 1.06-1.06l-1.72-1.72h5.69a.75.75 0 0 0 0-1.5h-5.69l1.72-1.72a.75.75 0 0 0-1.06-1.06l-3 3Z"
+            clip-rule="evenodd">
+          </path>
+        </svg>
       </button>
     </div>
     <div class="row-start-2">
-      <button
-        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-red active:text-ctp-blue/80">
-        Stop
+      <button id="mount_stop"
+        class="size-full aspect-square rounded py-2 px-3 text-sm font-semibold leading-6 text-red-800 active:text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-full">
+          <path fill-rule="evenodd"
+            d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm6-2.438c0-.724.588-1.312 1.313-1.312h4.874c.725 0 1.313.588 1.313 1.313v4.874c0 .725-.588 1.313-1.313 1.313H9.564a1.312 1.312 0 0 1-1.313-1.313V9.564Z"
+            clip-rule="evenodd">
+          </path>
+        </svg>
       </button>
     </div>
     <div class="row-start-2">
-      <button
-        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
-        Droite
+      <button id="mount_east"
+        class="size-full aspect-square rounded py-2 px-3 text-sm font-semibold leading-6 text-red-800 active:text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-full">
+          <path fill-rule="evenodd"
+            d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm4.28 10.28a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 1 0-1.06 1.06l1.72 1.72H8.25a.75.75 0 0 0 0 1.5h5.69l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3Z"
+            clip-rule="evenodd">
+          </path>
+        </svg>
       </button>
     </div>
     <div class="row-start-3 col-start-2">
-      <button
-        class="size-full aspect-square rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3 text-sm font-semibold leading-6 disabled:text-ctp-blue/40 text-ctp-blue active:text-ctp-blue/80">
-        Bas
+      <button id="mount_south"
+        class="size-full aspect-square rounded py-2 px-3 text-sm font-semibold leading-6 text-red-800 active:text-red-600">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-full">
+          <path fill-rule="evenodd"
+            d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-.53 14.03a.75.75 0 0 0 1.06 0l3-3a.75.75 0 1 0-1.06-1.06l-1.72 1.72V8.25a.75.75 0 0 0-1.5 0v5.69l-1.72-1.72a.75.75 0 0 0-1.06 1.06l3 3Z"
+            clip-rule="evenodd">
+          </path>
+        </svg>
       </button>
-    </div>
-    <div class="col-start-4 grid grid-cols-subgrid gap-1">
-      <.button>Parquer</.button>
-      <.button>Suivi</.button>
     </div>
   </div>
 </div>

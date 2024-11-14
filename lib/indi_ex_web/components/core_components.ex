@@ -229,8 +229,8 @@ defmodule IndiExWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded bg-ctp-surface0 hover:bg-ctp-surface1 py-2 px-3",
-        "text-sm font-semibold leading-6 text-ctp-blue active:text-ctp-blue/80 disabled:text-ctp-blue/40",
+        "phx-submit-loading:opacity-75 rounded py-2 px-3 text-sm font-semibold leading-6",
+        "border border-red-800 disabled:border-red-800/50 disabled:text-red-800/50 active:border-red-600 active:text-red-600",
         @class
       ]}
       {@rest}

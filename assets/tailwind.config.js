@@ -20,7 +20,6 @@ module.exports = {
   },
   plugins: [
     require("@tailwindcss/forms"),
-    require("@catppuccin/tailwindcss")({ prefix: "ctp", defaultFlavour: "macchiato" }),
     // Allows prefixing tailwind classes with LiveView classes to add rules
     // only when LiveView classes are applied, for example:
     //
