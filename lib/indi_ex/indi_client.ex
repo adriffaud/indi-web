@@ -3,7 +3,7 @@ defmodule IndiEx.IndiClient do
 
   require Logger
 
-  @initial_state %{socket: nil, timer: nil, partial: nil, properties: []}
+  @initial_state %{socket: nil, timer: nil, buffer: "", properties: []}
   @idle_timeout 5000
 
   def start_link do
@@ -17,11 +17,16 @@ defmodule IndiEx.IndiClient do
   @impl true
   def init(state) do
     opts = [:binary, active: true]
-    {:ok, socket} = :gen_tcp.connect(~c"localhost", 7624, opts)
 
-    new_timer = Process.send_after(self(), {:tcp_idle, socket}, @idle_timeout)
-    {:ok, partial} = Saxy.Partial.new(IndiEx.IndiXml, [])
-    {:ok, %{state | socket: socket, timer: new_timer, partial: partial}}
+    case :gen_tcp.connect(~c"localhost", 7624, opts) do
+      {:ok, socket} ->
+        new_timer = Process.send_after(self(), {:tcp_idle, socket}, @idle_timeout)
+        {:ok, %{state | socket: socket, timer: new_timer}}
+
+      {:error, reason} ->
+        Logger.error("Failed to connect to indiserver - #{reason}")
+        {:stop, reason}
+    end
   end
 
   @impl true
@@ -32,19 +37,18 @@ defmodule IndiEx.IndiClient do
   end
 
   @impl true
-  def handle_info({:tcp, socket, msg}, %{partial: partial} = state) do
+  def handle_info({:tcp, socket, data}, %{buffer: buffer} = state) do
     Process.cancel_timer(state.timer)
 
+    new_buffer = buffer <> data
+    {complete_elements, leftover} = process_buffer(new_buffer)
+
+    Enum.each(complete_elements, fn element ->
+      dbg(element)
+    end)
+
     new_timer = Process.send_after(self(), {:tcp_idle, socket}, @idle_timeout)
-
-    case Saxy.Partial.parse(partial, msg) do
-      {:cont, partial} ->
-        {:noreply, %{state | partial: partial, timer: new_timer}}
-      {:error, err} ->
-        dbg(err)
-        {:noreply, %{state |  timer: new_timer}}
-    end
-
+    {:noreply, %{state | timer: new_timer, buffer: leftover}}
   end
 
   @impl true
@@ -57,5 +61,17 @@ defmodule IndiEx.IndiClient do
   def handle_info(msg, state) do
     Logger.debug("⚠️⚠️⚠️ Unhandled message: #{inspect(msg)}")
     {:noreply, state}
+  end
+
+  defp process_buffer(buffer) do
+    case Saxy.parse_string(buffer, IndiEx.IndiXml, []) do
+      {:ok, data} ->
+        dbg(data)
+
+      {:error, %Saxy.ParseError{} = error} ->
+        dbg(error)
+    end
+
+    {[], buffer}
   end
 end
