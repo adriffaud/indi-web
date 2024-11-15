@@ -35,13 +35,16 @@ defmodule IndiEx.IndiClient do
   def handle_info({:tcp, socket, msg}, %{partial: partial} = state) do
     Process.cancel_timer(state.timer)
 
-    dbg(msg)
-    res = Saxy.Partial.parse(partial, msg)
-    dbg(res)
-    {:cont, partial} = res
-
     new_timer = Process.send_after(self(), {:tcp_idle, socket}, @idle_timeout)
-    {:noreply, %{state | partial: partial, timer: new_timer}}
+
+    case Saxy.Partial.parse(partial, msg) do
+      {:cont, partial} ->
+        {:noreply, %{state | partial: partial, timer: new_timer}}
+      {:error, err} ->
+        dbg(err)
+        {:noreply, %{state |  timer: new_timer}}
+    end
+
   end
 
   @impl true
