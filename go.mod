@@ -1,9 +1,10 @@
 module github.com/adriffaud/indi-web
 
 go 1.23.1
+toolchain go1.24.1
 
 require (
-	github.com/a-h/templ v0.3.856
+	github.com/a-h/templ v0.3.857
 	github.com/beevik/etree v1.5.0
 )
 
