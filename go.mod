@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/a-h/templ v0.3.857
-	github.com/beevik/etree v1.5.0
+	github.com/beevik/etree v1.5.1
 )
 
 require (
