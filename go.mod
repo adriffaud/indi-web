@@ -3,7 +3,7 @@ module github.com/adriffaud/indi-web
 go 1.23.1
 
 require (
-	github.com/a-h/templ v0.3.906
+	github.com/a-h/templ v0.3.920
 	github.com/beevik/etree v1.5.0
 )
 
